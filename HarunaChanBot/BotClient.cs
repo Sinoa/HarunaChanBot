@@ -103,19 +103,19 @@ namespace HarunaChanBot
             Console.WriteLine($"{arg.Timestamp.ToString().PadRight(30)}IsBot={arg.Author.IsBot} UserName={arg.Author.Username} message={arg.Content}");
 
 
-            if (arg.Author.IsBot || !ParseMessageCommand(arg.Content, out var commandText, out var argument))
+            if (arg.Author.IsBot || !ParseMessageCommand(arg.Content, out var commandText, out var arguments))
             {
                 return Task.CompletedTask;
             }
 
 
-            Console.WriteLine($"Command={commandText} Argument={argument}");
+            Console.WriteLine($"Command={commandText} ArgumentCount={(arguments == null ? 0 : arguments.Length)}");
 
 
             if (!CommandTable.TryGetValue(commandText, out var command))
             {
                 Console.WriteLine($"CommandNotFound:{commandText}");
-                ReplyMessage(CreateCommandNotFoundMessage(commandText, arg), new BotCommandContext(this, arg, argument));
+                ReplyMessage(CreateCommandNotFoundMessage(commandText, arg), new BotCommandContext(this, arg, arguments));
                 return Task.CompletedTask;
             }
 
@@ -123,19 +123,19 @@ namespace HarunaChanBot
             if (!command.IsPermittedUser(arg.Author.Username))
             {
                 Console.WriteLine($"CommandNotPermitted:{commandText} Name:{arg.Author.Username}");
-                ReplyMessage(CreateNotPermittedMessage(arg), new BotCommandContext(this, arg, argument));
+                ReplyMessage(CreateNotPermittedMessage(arg), new BotCommandContext(this, arg, arguments));
                 return Task.CompletedTask;
             }
 
 
-            return command.RunCommand(new BotCommandContext(this, arg, argument));
+            return command.RunCommand(new BotCommandContext(this, arg, arguments));
         }
 
 
-        private bool ParseMessageCommand(string message, out string command, out string argument)
+        private bool ParseMessageCommand(string message, out string command, out string[] arguments)
         {
             command = null;
-            argument = null;
+            arguments = null;
             foreach (var commandHeaderText in CommandHeaderTexts)
             {
                 if (message.StartsWith(commandHeaderText))
@@ -144,7 +144,11 @@ namespace HarunaChanBot
                     command = splitedMessage[0];
                     if (splitedMessage.Length > 1)
                     {
-                        argument = splitedMessage[1];
+                        arguments = new string[splitedMessage.Length - 1];
+                        for (int i = 1; i < splitedMessage.Length; ++i)
+                        {
+                            arguments[i - 1] = splitedMessage[i];
+                        }
                     }
                     break;
                 }

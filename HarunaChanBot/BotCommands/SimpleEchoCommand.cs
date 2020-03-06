@@ -21,7 +21,7 @@ namespace HarunaChanBot.BotCommands
     {
         public override Task RunCommand(BotCommandContext context)
         {
-            return context.BotClient.ReplyMessage($"うん、いいよ！『{context.Argument}』", context);
+            return context.BotClient.ReplyMessage($"うん、いいよ！『{string.Concat(context.Arguments)}』", context);
         }
     }
 }
