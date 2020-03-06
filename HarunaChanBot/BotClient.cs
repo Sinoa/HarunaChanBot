@@ -101,10 +101,11 @@ namespace HarunaChanBot
             Console.WriteLine($"{arg.Timestamp.ToString().PadRight(30)}IsBot={arg.Author.IsBot} UserName={arg.Author.Username} message={arg.Content}");
 
 
-            if (arg.Author.IsBot || !ParseMessageCommand(arg.Content, out var commandText))
+            if (arg.Author.IsBot || !ParseMessageCommand(arg.Content, out var commandText, out var argument))
             {
                 return Task.CompletedTask;
             }
+            Console.WriteLine($"Command={commandText} Argument={argument}");
 
 
             if (!CommandTable.TryGetValue(commandText, out var command))
@@ -127,20 +128,60 @@ namespace HarunaChanBot
         }
 
 
-        private bool ParseMessageCommand(string message, out string command)
+        private bool ParseMessageCommand(string message, out string command, out string argument)
         {
             command = null;
+            argument = null;
             foreach (var commandHeaderText in CommandHeaderTexts)
             {
                 if (message.StartsWith(commandHeaderText))
                 {
-                    command = message.Remove(0, commandHeaderText.Length);
+                    var splitedMessage = SplitMessage(message.Remove(0, commandHeaderText.Length));
+                    command = splitedMessage[0];
+                    if (splitedMessage.Length > 1)
+                    {
+                        argument = splitedMessage[1];
+                    }
                     break;
                 }
             }
 
 
             return command != null;
+        }
+
+
+        private string[] SplitMessage(string message)
+        {
+            var stringList = new List<string>();
+            var charaList = new List<char>();
+            foreach (var chara in message)
+            {
+                if (char.IsWhiteSpace(chara))
+                {
+                    stringList.Add(new string(charaList.ToArray()));
+                    charaList.Clear();
+                    continue;
+                }
+
+
+                charaList.Add(chara);
+            }
+
+
+            if (stringList.Count == 0)
+            {
+                return new string[] { message };
+            }
+
+
+            if (charaList.Count != 0)
+            {
+                stringList.Add(new string(charaList.ToArray()));
+            }
+
+
+            return stringList.ToArray();
         }
 
 
