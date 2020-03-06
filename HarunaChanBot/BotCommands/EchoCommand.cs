@@ -13,23 +13,15 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-using Discord.WebSocket;
+using System.Threading.Tasks;
 
-namespace HarunaChanBot
+namespace HarunaChanBot.BotCommands
 {
-    public class BotCommandContext
+    public class EchoCommand : BotCommand
     {
-        public BotClient BotClient { get; }
-        public SocketMessage ReceiveSocketMessage { get; }
-        public string[] Arguments { get; }
-
-
-
-        public BotCommandContext(BotClient client, SocketMessage message, string[] arguments)
+        public override Task RunCommand(BotCommandContext context)
         {
-            BotClient = client;
-            ReceiveSocketMessage = message;
-            Arguments = arguments;
+            return context.BotClient.SendMessage(string.Concat(context.Arguments), context);
         }
     }
 }

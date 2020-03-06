@@ -54,6 +54,8 @@ namespace HarunaChanBot
                 { "おはよーすたー", new ShowOhayoCommand() },
                 { "おはよーすたー！", new ShowOhayoCommand() },
                 { "おはよーすたー！！", new ShowOhayoCommand() },
+                { "そのまま言って", new EchoCommand() },
+                { "返事して", new SimpleEchoCommand() },
             };
         }
 
@@ -101,16 +103,19 @@ namespace HarunaChanBot
             Console.WriteLine($"{arg.Timestamp.ToString().PadRight(30)}IsBot={arg.Author.IsBot} UserName={arg.Author.Username} message={arg.Content}");
 
 
-            if (arg.Author.IsBot || !ParseMessageCommand(arg.Content, out var commandText))
+            if (arg.Author.IsBot || !ParseMessageCommand(arg.Content, out var commandText, out var arguments))
             {
                 return Task.CompletedTask;
             }
 
 
+            Console.WriteLine($"Command={commandText} ArgumentCount={(arguments == null ? 0 : arguments.Length)}");
+
+
             if (!CommandTable.TryGetValue(commandText, out var command))
             {
                 Console.WriteLine($"CommandNotFound:{commandText}");
-                ReplyMessage(CreateCommandNotFoundMessage(commandText, arg), new BotCommandContext(this, arg));
+                ReplyMessage(CreateCommandNotFoundMessage(commandText, arg), new BotCommandContext(this, arg, arguments));
                 return Task.CompletedTask;
             }
 
@@ -118,29 +123,73 @@ namespace HarunaChanBot
             if (!command.IsPermittedUser(arg.Author.Username))
             {
                 Console.WriteLine($"CommandNotPermitted:{commandText} Name:{arg.Author.Username}");
-                ReplyMessage(CreateNotPermittedMessage(arg), new BotCommandContext(this, arg));
+                ReplyMessage(CreateNotPermittedMessage(arg), new BotCommandContext(this, arg, arguments));
                 return Task.CompletedTask;
             }
 
 
-            return command.RunCommand(new BotCommandContext(this, arg));
+            return command.RunCommand(new BotCommandContext(this, arg, arguments));
         }
 
 
-        private bool ParseMessageCommand(string message, out string command)
+        private bool ParseMessageCommand(string message, out string command, out string[] arguments)
         {
             command = null;
+            arguments = null;
             foreach (var commandHeaderText in CommandHeaderTexts)
             {
                 if (message.StartsWith(commandHeaderText))
                 {
-                    command = message.Remove(0, commandHeaderText.Length);
+                    var splitedMessage = SplitMessage(message.Remove(0, commandHeaderText.Length));
+                    command = splitedMessage[0];
+                    if (splitedMessage.Length > 1)
+                    {
+                        arguments = new string[splitedMessage.Length - 1];
+                        for (int i = 1; i < splitedMessage.Length; ++i)
+                        {
+                            arguments[i - 1] = splitedMessage[i];
+                        }
+                    }
                     break;
                 }
             }
 
 
             return command != null;
+        }
+
+
+        private string[] SplitMessage(string message)
+        {
+            var stringList = new List<string>();
+            var charaList = new List<char>();
+            foreach (var chara in message)
+            {
+                if (char.IsWhiteSpace(chara))
+                {
+                    stringList.Add(new string(charaList.ToArray()));
+                    charaList.Clear();
+                    continue;
+                }
+
+
+                charaList.Add(chara);
+            }
+
+
+            if (stringList.Count == 0)
+            {
+                return new string[] { message };
+            }
+
+
+            if (charaList.Count != 0)
+            {
+                stringList.Add(new string(charaList.ToArray()));
+            }
+
+
+            return stringList.ToArray();
         }
 
 
