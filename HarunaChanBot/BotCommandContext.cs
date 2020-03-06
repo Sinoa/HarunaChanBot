@@ -21,13 +21,15 @@ namespace HarunaChanBot
     {
         public BotClient BotClient { get; }
         public SocketMessage ReceiveSocketMessage { get; }
+        public string Argument { get; }
 
 
 
-        public BotCommandContext(BotClient client, SocketMessage message)
+        public BotCommandContext(BotClient client, SocketMessage message, string argument)
         {
             BotClient = client;
             ReceiveSocketMessage = message;
+            Argument = argument;
         }
     }
 }

@@ -105,13 +105,15 @@ namespace HarunaChanBot
             {
                 return Task.CompletedTask;
             }
+
+
             Console.WriteLine($"Command={commandText} Argument={argument}");
 
 
             if (!CommandTable.TryGetValue(commandText, out var command))
             {
                 Console.WriteLine($"CommandNotFound:{commandText}");
-                ReplyMessage(CreateCommandNotFoundMessage(commandText, arg), new BotCommandContext(this, arg));
+                ReplyMessage(CreateCommandNotFoundMessage(commandText, arg), new BotCommandContext(this, arg, argument));
                 return Task.CompletedTask;
             }
 
@@ -119,12 +121,12 @@ namespace HarunaChanBot
             if (!command.IsPermittedUser(arg.Author.Username))
             {
                 Console.WriteLine($"CommandNotPermitted:{commandText} Name:{arg.Author.Username}");
-                ReplyMessage(CreateNotPermittedMessage(arg), new BotCommandContext(this, arg));
+                ReplyMessage(CreateNotPermittedMessage(arg), new BotCommandContext(this, arg, argument));
                 return Task.CompletedTask;
             }
 
 
-            return command.RunCommand(new BotCommandContext(this, arg));
+            return command.RunCommand(new BotCommandContext(this, arg, argument));
         }
 
 
