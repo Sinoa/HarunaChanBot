@@ -54,6 +54,8 @@ namespace HarunaChanBot
                 { "おはよーすたー", new ShowOhayoCommand() },
                 { "おはよーすたー！", new ShowOhayoCommand() },
                 { "おはよーすたー！！", new ShowOhayoCommand() },
+                { "そのまま言って", new EchoCommand() },
+                { "返事して", new SimpleEchoCommand() },
             };
         }
 
