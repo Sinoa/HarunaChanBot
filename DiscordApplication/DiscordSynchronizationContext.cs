@@ -20,30 +20,19 @@ using System.Threading;
 
 namespace DiscordApplication
 {
-    internal sealed class DiscordSynchronizationContext : SynchronizationContext, IDisposable
+    internal sealed class DiscordSynchronizationContext : SynchronizationContext
     {
         private readonly int contextThreadID;
         private readonly Queue<Message> messageQueue;
-        private readonly SynchronizationContext prevContext;
 
 
 
         public DiscordSynchronizationContext(out Action messagePumpHandler)
         {
-            prevContext = AsyncOperationManager.SynchronizationContext;
+            AsyncOperationManager.SynchronizationContext = this;
             contextThreadID = Thread.CurrentThread.ManagedThreadId;
             messageQueue = new Queue<Message>();
             messagePumpHandler = DoProcessMessage;
-            AsyncOperationManager.SynchronizationContext = this;
-        }
-
-
-        public void Dispose()
-        {
-            if (AsyncOperationManager.SynchronizationContext == this)
-            {
-                AsyncOperationManager.SynchronizationContext = prevContext;
-            }
         }
 
 

@@ -31,6 +31,9 @@ namespace DiscordApplication
             client = new DiscordSocketClient();
             client.LoggedIn += Client_LoggedIn;
             client.LoggedOut += Client_LoggedOut;
+            client.JoinedGuild += Client_JoinedGuild;
+            client.LeftGuild += Client_LeftGuild;
+            client.GuildAvailable += Client_GuildAvailable;
             client.MessageReceived += Client_MessageReceived;
         }
 
@@ -46,6 +49,24 @@ namespace DiscordApplication
         {
             synchronizationContext.Send(x => OnLoggedOut(), null);
             return Task.CompletedTask;
+        }
+
+
+        private Task Client_JoinedGuild(SocketGuild arg)
+        {
+            throw new System.NotImplementedException();
+        }
+
+
+        private Task Client_LeftGuild(SocketGuild arg)
+        {
+            throw new System.NotImplementedException();
+        }
+
+
+        private Task Client_GuildAvailable(SocketGuild arg)
+        {
+            throw new System.NotImplementedException();
         }
 
 
