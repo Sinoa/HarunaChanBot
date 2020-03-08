@@ -13,22 +13,17 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-using System.Threading.Tasks;
-
-namespace HarunaChanBot.BotCommands
+namespace HarunaChanBot.Framework
 {
-    public class LogoutCommand : BotCommand
+    public abstract class ApplicationService
     {
-        public override bool IsPermittedUser(string name)
+        protected internal virtual void Update()
         {
-            return name == ApplicationMain.Context.Config.SupervisorName;
         }
 
 
-        public override async Task RunCommand(BotCommandContext context)
+        protected internal virtual void Terminate()
         {
-            await context.BotClient.SendMessage("はーい！陽菜、お家に帰るね～、ばいばーい", context);
-            await context.BotClient.Logout();
         }
     }
 }

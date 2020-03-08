@@ -13,36 +13,21 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-using System;
-using System.Threading.Tasks;
+using Discord.WebSocket;
 
-namespace HarunaChanBot.BotCommands
+namespace HarunaChanBot.Framework
 {
-    public class ShowOyasumiCommand : BotCommand
+    public class DiscordMessageObject
     {
-        private readonly string[] messages;
+        public ISocketMessageChannel TargetChannel { get; }
+        public string Message { get; }
 
 
 
-        public ShowOyasumiCommand()
+        public DiscordMessageObject(ISocketMessageChannel targetChannel, string message)
         {
-            messages = new string[]
-            {
-                "おやすみなさい！",
-                "おやすみーとそーす！",
-                "おやすみずーり！",
-                "おやすみっどうぇい！",
-                "おやすみらくるにき！",
-                "おやすみそしる！",
-            };
-        }
-
-
-        public override Task RunCommand(BotCommandContext context)
-        {
-            var random = new Random();
-            var selectedMessage = messages[random.Next(0, messages.Length)];
-            return context.BotClient.ReplyMessage($"{selectedMessage} また明日ね！", context);
+            TargetChannel = targetChannel;
+            Message = message;
         }
     }
 }
