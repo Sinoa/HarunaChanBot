@@ -13,6 +13,8 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System;
+using Discord.WebSocket;
 using HarunaChanBot.Framework;
 using HarunaChanBot.Utils;
 
@@ -20,8 +22,15 @@ namespace HarunaChanBot.Services
 {
     public class SystemControlService : ApplicationService
     {
+        private double maxFrameNanoTime;
+
+
+
         protected internal override void Update()
         {
+            maxFrameNanoTime = Math.Max(maxFrameNanoTime, Application.Current.FrameNanoTime);
+
+
             foreach (var message in Application.Current.Post.ReceivedMessageList)
             {
                 if (!KaiwaParser.ParseMessageCommand(message.Content, out var command, out var arguments)) continue;
@@ -29,19 +38,40 @@ namespace HarunaChanBot.Services
 
                 switch (command)
                 {
+                    case "システムステータスの表示":
+                        ShowSystemInformation(message);
+                        break;
+
+
                     case "家に帰って":
-                        if (message.Author.Id != Application.Current.SupervisorID)
-                        {
-                            Application.Current.Post.ReplyMessage("ごめんなさい、知らない人の言葉を信じちゃいけないってお母さんから言われているの。", message);
-                            return;
-                        }
-
-
-                        Application.Current.Post.SendMessage("はーい！陽菜、お家に帰るね～、ばいばーい", message);
-                        Application.Current.Quit();
+                        Logout(message);
                         break;
                 }
             }
+        }
+
+
+        private void ShowSystemInformation(SocketMessage message)
+        {
+            var messageText = $@"
+現在稼働中のシステムのステータスを開示します。
+フレーム処理時間：{(Application.Current.FrameNanoTime / 1000000.0).ToString("N3")} ms（{(1.0 / Application.Current.FrameNanoTime * 1000000000.0).ToString("N0")} FPS）
+最大フレーム処理時間：{(maxFrameNanoTime / 1000000.0).ToString("N3")} ms（{(1.0 / maxFrameNanoTime * 1000000000.0).ToString("N0")} FPS）";
+            Application.Current.Post.ReplyMessage(messageText, message);
+        }
+
+
+        private void Logout(SocketMessage message)
+        {
+            if (message.Author.Id != Application.Current.SupervisorID)
+            {
+                Application.Current.Post.ReplyMessage("ごめんなさい、知らない人の言葉を信じちゃいけないってお母さんから言われているの。", message);
+                return;
+            }
+
+
+            Application.Current.Post.SendMessage("はーい！陽菜、お家に帰るね～、ばいばーい", message);
+            Application.Current.Quit();
         }
     }
 }
