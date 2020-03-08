@@ -14,6 +14,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System;
+using System.Runtime;
 using Discord.WebSocket;
 using HarunaChanBot.Framework;
 using HarunaChanBot.Utils;
@@ -43,6 +44,11 @@ namespace HarunaChanBot.Services
                         break;
 
 
+                    case "メモリ掃除をお願い":
+                        GCCollect(message);
+                        break;
+
+
                     case "家に帰って":
                         Logout(message);
                         break;
@@ -51,12 +57,37 @@ namespace HarunaChanBot.Services
         }
 
 
+        private void GCCollect(SocketMessage message)
+        {
+            if (message.Author.Id != Application.Current.SupervisorID)
+            {
+                Application.Current.Post.ReplyMessage("ごめんなさい、知らない人の言葉を信じちゃいけないってお母さんから言われているの。", message);
+                return;
+            }
+
+
+            var prevSize = GC.GetTotalMemory(false);
+            GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+            GC.Collect();
+            var nextSize = GC.GetTotalMemory(false);
+
+
+            Application.Current.Post.ReplyMessage($"メモリの掃除が終わったよ！ 使用量は {prevSize.ToString("N0")} -> {nextSize.ToString("N0")} になったよ", message);
+        }
+
+
         private void ShowSystemInformation(SocketMessage message)
         {
             var messageText = $@"
 現在稼働中のシステムのステータスを開示します。
 フレーム処理時間：{(Application.Current.FrameNanoTime / 1000000.0).ToString("N3")} ms（{(1.0 / Application.Current.FrameNanoTime * 1000000000.0).ToString("N0")} FPS）
-最大フレーム処理時間：{(maxFrameNanoTime / 1000000.0).ToString("N3")} ms（{(1.0 / maxFrameNanoTime * 1000000000.0).ToString("N0")} FPS）";
+最大フレーム処理時間：{(maxFrameNanoTime / 1000000.0).ToString("N3")} ms（{(1.0 / maxFrameNanoTime * 1000000000.0).ToString("N0")} FPS）
+メモリ使用量：{Environment.WorkingSet.ToString("N0")} Bytes
+GC使用量：{GC.GetTotalMemory(false).ToString("N0")} Bytes
+GC世代数：{GC.MaxGeneration + 1} 世代
+GCカウント(世代0)：{GC.CollectionCount(0)} 回
+GCカウント(世代1)：{GC.CollectionCount(1)} 回
+GCカウント(世代2)：{GC.CollectionCount(2)} 回";
             Application.Current.Post.ReplyMessage(messageText, message);
         }
 
