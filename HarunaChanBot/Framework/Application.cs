@@ -13,16 +13,20 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-using System.Threading;
+using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using Discord.WebSocket;
 
-namespace DiscordApplication
+namespace HarunaChanBot.Framework
 {
     public abstract class Application
     {
         private readonly DiscordSocketClient client;
-        private readonly SynchronizationContext synchronizationContext;
+
+
+
+        public bool Running { get; private set; }
 
 
 
@@ -40,45 +44,91 @@ namespace DiscordApplication
 
         private Task Client_LoggedIn()
         {
-            synchronizationContext.Send(x => OnLoggedIn(), null);
+            AsyncOperationManager.SynchronizationContext.Post(x => OnLoggedIn_Core(), null);
             return Task.CompletedTask;
         }
 
 
         private Task Client_LoggedOut()
         {
-            synchronizationContext.Send(x => OnLoggedOut(), null);
+            AsyncOperationManager.SynchronizationContext.Post(x => OnLoggedOut_Core(), null);
             return Task.CompletedTask;
         }
 
 
         private Task Client_JoinedGuild(SocketGuild arg)
         {
-            throw new System.NotImplementedException();
+            AsyncOperationManager.SynchronizationContext.Post(x => OnJoinGuild_Core((SocketGuild)x), arg);
+            return Task.CompletedTask;
         }
 
 
         private Task Client_LeftGuild(SocketGuild arg)
         {
-            throw new System.NotImplementedException();
+            AsyncOperationManager.SynchronizationContext.Post(x => OnLeaveGuild_Core((SocketGuild)x), arg);
+            return Task.CompletedTask;
         }
 
 
         private Task Client_GuildAvailable(SocketGuild arg)
         {
-            throw new System.NotImplementedException();
+            AsyncOperationManager.SynchronizationContext.Post(x => OnGuildAvailable_Core((SocketGuild)x), arg);
+            return Task.CompletedTask;
         }
 
 
         private Task Client_MessageReceived(SocketMessage arg)
         {
-            throw new System.NotImplementedException();
+            AsyncOperationManager.SynchronizationContext.Post(x => OnMessageReceived_Core((SocketMessage)x), arg);
+            return Task.CompletedTask;
         }
 
 
-        protected virtual string GetBotToken()
+        private void OnLoggedIn_Core()
         {
-            return null;
+            OnLoggedIn();
+        }
+
+
+        private void OnLoggedOut_Core()
+        {
+            OnLoggedOut();
+        }
+
+
+        private void OnJoinGuild_Core(SocketGuild guild)
+        {
+            OnJoinGuild(guild);
+        }
+
+
+        private void OnLeaveGuild_Core(SocketGuild guild)
+        {
+            OnLeaveGuild(guild);
+        }
+
+
+        private void OnGuildAvailable_Core(SocketGuild guild)
+        {
+            OnGuildAvailable(guild);
+        }
+
+
+        private void OnMessageReceived_Core(SocketMessage message)
+        {
+            OnMessageReceived(message);
+        }
+
+
+        private void Update_Core()
+        {
+            Update();
+        }
+
+
+        private void OnStartupFailed_Core()
+        {
+            OnStartupFailed();
         }
 
 
@@ -89,6 +139,116 @@ namespace DiscordApplication
 
         protected virtual void OnLoggedOut()
         {
+        }
+
+
+        protected virtual void OnJoinGuild(SocketGuild guild)
+        {
+        }
+
+
+        protected virtual void OnLeaveGuild(SocketGuild guild)
+        {
+        }
+
+
+        protected virtual void OnGuildAvailable(SocketGuild guild)
+        {
+        }
+
+
+        protected virtual void OnMessageReceived(SocketMessage message)
+        {
+        }
+
+
+        protected virtual void Update()
+        {
+        }
+
+
+        protected virtual void OnStartupFailed()
+        {
+        }
+
+
+        protected virtual string GetBotToken()
+        {
+            return null;
+        }
+
+
+        public void Run()
+        {
+            AsyncOperationManager.SynchronizationContext = new DiscordSynchronizationContext(out var messagePumpHandler);
+
+
+            if (!StartupDiscord(messagePumpHandler))
+            {
+                OnStartupFailed_Core();
+                return;
+            }
+
+
+            Running = true;
+            while (Running)
+            {
+                messagePumpHandler();
+                Update_Core();
+            }
+
+
+            ShutdownDiscord(messagePumpHandler);
+        }
+
+
+        private bool StartupDiscord(Action messagePumpHandler)
+        {
+            var task = StartupDiscordAsync();
+            while (!task.IsCompleted)
+            {
+                messagePumpHandler();
+            }
+
+
+            return task.Result;
+        }
+
+
+        private async Task<bool> StartupDiscordAsync()
+        {
+            var token = GetBotToken();
+            if (token == null) return false;
+
+
+            try
+            {
+                await client.LoginAsync(Discord.TokenType.Bot, token);
+                await client.StartAsync();
+            }
+            catch
+            {
+                return false;
+            }
+
+
+            return true;
+        }
+
+
+        private void ShutdownDiscord(Action messagePumpHandler)
+        {
+            var task = ShutdownDiscordAsync();
+            while (!task.IsCompleted)
+            {
+                messagePumpHandler();
+            }
+        }
+
+
+        private async Task ShutdownDiscordAsync()
+        {
+            await client.LogoutAsync();
         }
     }
 }

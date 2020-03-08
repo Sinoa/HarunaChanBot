@@ -18,7 +18,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading;
 
-namespace DiscordApplication
+namespace HarunaChanBot.Framework
 {
     internal sealed class DiscordSynchronizationContext : SynchronizationContext
     {
