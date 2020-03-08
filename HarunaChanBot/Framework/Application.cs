@@ -44,6 +44,9 @@ namespace HarunaChanBot.Framework
             client.LeftGuild += Client_LeftGuild;
             client.GuildAvailable += Client_GuildAvailable;
             client.MessageReceived += Client_MessageReceived;
+
+
+            Initialize();
         }
 
 
@@ -134,6 +137,11 @@ namespace HarunaChanBot.Framework
         private void OnStartupFailed_Core()
         {
             OnStartupFailed();
+        }
+
+
+        protected virtual void Initialize()
+        {
         }
 
 
