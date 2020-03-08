@@ -37,10 +37,14 @@ namespace HarunaChanBot.Services
 
         protected internal override void Update()
         {
+            var service = Application.Current.GetService<HarunaChanQuestService>();
+
+
             foreach (var message in Application.Current.Post.ReceivedMessageList)
             {
                 if (!KaiwaParser.ParseMessageCommand(message.Content, out var command, out var arguments)) continue;
 
+                var playerData = service.GetPlayerData(message);
 
                 switch (command)
                 {
@@ -49,7 +53,7 @@ namespace HarunaChanBot.Services
                     case "おやすみなんし":
                     case "お休みなさい":
                     case "おやすみなしあ":
-                        Oyasumi(message);
+                        Oyasumi(message, playerData);
                         break;
 
 
@@ -69,22 +73,22 @@ namespace HarunaChanBot.Services
                     case "おはよーすたー":
                     case "おはよーすたー！":
                     case "おはよーすたー！！":
-                        Ohayo(message);
+                        Ohayo(message, playerData);
                         break;
 
 
                     case "そのまま言って":
-                        Repeat(message, arguments);
+                        Repeat(message, arguments, playerData);
                         break;
 
 
                     case "返事して":
-                        Henzi(message, arguments);
+                        Henzi(message, arguments, playerData);
                         break;
 
 
                     case "会話データをロードして":
-                        DynamicLoadKaiwaData(message);
+                        DynamicLoadKaiwaData(message, playerData);
                         break;
                 }
             }
@@ -98,38 +102,38 @@ namespace HarunaChanBot.Services
         }
 
 
-        private void DynamicLoadKaiwaData(SocketMessage message)
+        private void DynamicLoadKaiwaData(SocketMessage message, PlayerGameData playerData)
         {
             if (message.Author.Id != Application.Current.SupervisorID)
             {
-                Application.Current.Post.ReplyMessage("ごめんなさい、知らない人の言葉を信じちゃいけないってお母さんから言われているの。", message);
+                Application.Current.Post.ReplyMessage("ごめんなさい、知らない人の言葉を信じちゃいけないってお母さんから言われているの。", message, message.Channel, playerData.GetMentionSuffixText());
                 return;
             }
 
 
             LoadKaiwaData();
-            Application.Current.Post.ReplyMessage($"会話データを読み込んだよ！\nおはよう会話が、{kaiwaData.OhayoMessages.Length}件\nおやすみ会話が、{kaiwaData.OyasumiMessages.Length}件\nおみくじデータが、{kaiwaData.OmikuziData.Length}件あったよ！", message);
+            Application.Current.Post.ReplyMessage($"会話データを読み込んだよ！\nおはよう会話が、{kaiwaData.OhayoMessages.Length}件\nおやすみ会話が、{kaiwaData.OyasumiMessages.Length}件\nおみくじデータが、{kaiwaData.OmikuziData.Length}件あったよ！", message, message.Channel, playerData.GetMentionSuffixText());
         }
 
 
-        private void Oyasumi(SocketMessage message)
+        private void Oyasumi(SocketMessage message, PlayerGameData playerData)
         {
-            Application.Current.Post.ReplyMessage($"{kaiwaData.GetOyasumiMessage()} また明日ね！", message);
+            Application.Current.Post.ReplyMessage($"{kaiwaData.GetOyasumiMessage()} また明日ね！", message, message.Channel, playerData.GetMentionSuffixText());
         }
 
 
-        private void Ohayo(SocketMessage message)
+        private void Ohayo(SocketMessage message, PlayerGameData playerData)
         {
             var omikuzi = kaiwaData.GetOmikuziData();
-            Application.Current.Post.ReplyMessage($"{kaiwaData.GetOhayoMessage()} 今日の運勢は、、、{omikuzi.ResultMessage}だよ！{omikuzi.PostMessage}", message);
+            Application.Current.Post.ReplyMessage($"{kaiwaData.GetOhayoMessage()} 今日の運勢は、、、{omikuzi.ResultMessage}だよ！{omikuzi.PostMessage}", message, message.Channel, playerData.GetMentionSuffixText());
         }
 
 
-        private void Repeat(SocketMessage message, string[] arguments)
+        private void Repeat(SocketMessage message, string[] arguments, PlayerGameData playerData)
         {
             if (arguments == null || arguments.Length < 1)
             {
-                Application.Current.Post.ReplyMessage("陽菜、なんて言えばいいの？", message);
+                Application.Current.Post.ReplyMessage("陽菜、なんて言えばいいの？", message, message.Channel, playerData.GetMentionSuffixText());
             }
             else
             {
@@ -138,15 +142,15 @@ namespace HarunaChanBot.Services
         }
 
 
-        private void Henzi(SocketMessage message, string[] arguments)
+        private void Henzi(SocketMessage message, string[] arguments, PlayerGameData playerData)
         {
             if (arguments == null || arguments.Length < 1)
             {
-                Application.Current.Post.ReplyMessage("陽菜、なんて返事をすればいいの？", message);
+                Application.Current.Post.ReplyMessage("陽菜、なんて返事をすればいいの？", message, message.Channel, playerData.GetMentionSuffixText());
             }
             else
             {
-                Application.Current.Post.ReplyMessage($"うん、いいよ！『{string.Concat(arguments)}』", message);
+                Application.Current.Post.ReplyMessage($"うん、いいよ！『{string.Concat(arguments)}』", message, message.Channel, playerData.GetMentionSuffixText());
             }
         }
     }

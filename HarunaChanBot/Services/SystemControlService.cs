@@ -30,11 +30,14 @@ namespace HarunaChanBot.Services
         protected internal override void Update()
         {
             maxFrameNanoTime = Math.Max(maxFrameNanoTime, Application.Current.FrameNanoTime);
+            var service = Application.Current.GetService<HarunaChanQuestService>();
 
 
             foreach (var message in Application.Current.Post.ReceivedMessageList)
             {
                 if (!KaiwaParser.ParseMessageCommand(message.Content, out var command, out var arguments)) continue;
+
+                var playerData = service.GetPlayerData(message);
 
 
                 switch (command)
@@ -45,23 +48,23 @@ namespace HarunaChanBot.Services
 
 
                     case "メモリ掃除をお願い":
-                        GCCollect(message);
+                        GCCollect(message, playerData);
                         break;
 
 
                     case "家に帰って":
-                        Logout(message);
+                        Logout(message, playerData);
                         break;
                 }
             }
         }
 
 
-        private void GCCollect(SocketMessage message)
+        private void GCCollect(SocketMessage message, PlayerGameData playerData)
         {
             if (message.Author.Id != Application.Current.SupervisorID)
             {
-                Application.Current.Post.ReplyMessage("ごめんなさい、知らない人の言葉を信じちゃいけないってお母さんから言われているの。", message);
+                Application.Current.Post.ReplyMessage("ごめんなさい、知らない人の言葉を信じちゃいけないってお母さんから言われているの。", message, message.Channel, playerData.GetMentionSuffixText());
                 return;
             }
 
@@ -72,7 +75,7 @@ namespace HarunaChanBot.Services
             var nextSize = GC.GetTotalMemory(false);
 
 
-            Application.Current.Post.ReplyMessage($"メモリの掃除が終わったよ！ 使用量は {prevSize.ToString("N0")} -> {nextSize.ToString("N0")} になったよ", message);
+            Application.Current.Post.ReplyMessage($"メモリの掃除が終わったよ！ 使用量は {prevSize.ToString("N0")} -> {nextSize.ToString("N0")} になったよ", message, message.Channel, playerData.GetMentionSuffixText());
         }
 
 
@@ -92,11 +95,11 @@ GCカウント(世代2)：{GC.CollectionCount(2)} 回";
         }
 
 
-        private void Logout(SocketMessage message)
+        private void Logout(SocketMessage message, PlayerGameData playerData)
         {
             if (message.Author.Id != Application.Current.SupervisorID)
             {
-                Application.Current.Post.ReplyMessage("ごめんなさい、知らない人の言葉を信じちゃいけないってお母さんから言われているの。", message);
+                Application.Current.Post.ReplyMessage("ごめんなさい、知らない人の言葉を信じちゃいけないってお母さんから言われているの。", message, message.Channel, playerData.GetMentionSuffixText());
                 return;
             }
 

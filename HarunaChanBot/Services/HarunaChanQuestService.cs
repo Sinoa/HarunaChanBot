@@ -188,7 +188,7 @@ namespace HarunaChanBot.Services
 レベル：{playerData.Level}
 経験値：{playerData.Exp} / {expTable[playerData.Level]}
 コイン：{playerData.Coin}
-性別：{playerData.Gender}", message);
+性別：{playerData.Gender}", message, message.Channel, playerData.GetMentionSuffixText());
         }
 
 
@@ -204,16 +204,19 @@ namespace HarunaChanBot.Services
 
         private void SetChannelRate(SocketMessage message, string[] arguments)
         {
+            var playerData = GetPlayerData(message);
+
+
             if (arguments.Length < 1)
             {
-                Application.Current.Post.ReplyMessage("コマンドの引数が足りないよぉ", message);
+                Application.Current.Post.ReplyMessage("コマンドの引数が足りないよぉ", message, message.Channel, playerData.GetMentionSuffixText());
                 return;
             }
 
 
             if (message.Author.Id != Application.Current.SupervisorID)
             {
-                Application.Current.Post.ReplyMessage("ごめんなさい。このコマンドはかんりしゃの人だけしか使っちゃいけないってお母さんに言われてるの。", message);
+                Application.Current.Post.ReplyMessage("ごめんなさい。このコマンドはかんりしゃの人だけしか使っちゃいけないってお母さんに言われてるの。", message, message.Channel, playerData.GetMentionSuffixText());
                 return;
             }
 
@@ -221,13 +224,14 @@ namespace HarunaChanBot.Services
             var channelRate = GetChannelRate(message);
             var currentRate = channelRate.Rate;
             channelRate.Rate = double.Parse(arguments[0]);
-            Application.Current.Post.ReplyMessage($"{message.Channel.Name}({message.Channel.Id}) のレートを {currentRate} -> {channelRate.Rate} に変更したよ！", message);
+            Application.Current.Post.ReplyMessage($"{message.Channel.Name}({message.Channel.Id}) のレートを {currentRate} -> {channelRate.Rate} に変更したよ！", message, message.Channel, playerData.GetMentionSuffixText());
         }
 
 
         private void ShowChannelRate(SocketMessage message)
         {
-            Application.Current.Post.ReplyMessage($"{message.Channel.Name}({message.Channel.Id}) のレートは {GetChannelRate(message).Rate} だよ！", message);
+            var playerData = GetPlayerData(message);
+            Application.Current.Post.ReplyMessage($"{message.Channel.Name}({message.Channel.Id}) のレートは {GetChannelRate(message).Rate} だよ！", message, message.Channel, playerData.GetMentionSuffixText());
         }
 
 
@@ -302,7 +306,7 @@ namespace HarunaChanBot.Services
             LevelUp(playerData);
             if (currentLevel < playerData.Level)
             {
-                Application.Current.Post.ReplyMessage($"はるなちゃんクエストのプレイヤーレベルが {playerData.Level} に上がったよ！", message);
+                Application.Current.Post.ReplyMessage($"はるなちゃんクエストのプレイヤーレベルが {playerData.Level} に上がったよ！", message, message.Channel, playerData.GetMentionSuffixText());
             }
 
             dirty = true;
@@ -398,8 +402,8 @@ namespace HarunaChanBot.Services
         {
             switch (Gender)
             {
-                case GenderType.Male: return "おにいちゃん";
-                case GenderType.Female: return "おねえちゃん";
+                case GenderType.Male: return "おにいちゃん！";
+                case GenderType.Female: return "おねえちゃん！";
             }
 
 
