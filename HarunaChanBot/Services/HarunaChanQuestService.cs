@@ -340,7 +340,7 @@ namespace HarunaChanBot.Services
         }
 
 
-        private PlayerGameData GetPlayerData(SocketMessage message)
+        public PlayerGameData GetPlayerData(SocketMessage message)
         {
             var table = gameData.PlayerTable;
             var ID = message.Author.Id;
@@ -391,6 +391,20 @@ namespace HarunaChanBot.Services
         public int Coin { get; set; }
         public DateTimeOffset LastSendMessageTimestamp { get; set; }
         public GenderType Gender { get; set; }
+
+
+
+        public string GetMentionSuffixText()
+        {
+            switch (Gender)
+            {
+                case GenderType.Male: return "おにいちゃん";
+                case GenderType.Female: return "おねえちゃん";
+            }
+
+
+            return string.Empty;
+        }
     }
 
 
