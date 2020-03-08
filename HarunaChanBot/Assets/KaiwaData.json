@@ -1,28 +1,28 @@
 {
   "OhayoMessages": [
-    "‚¨‚Í‚æ[I",
-    "‚¨‚ÍYostarII",
-    "‚¨‚Í‚é‚ÈII",
-    "‚¨‚Í‚æ‚ñ‚ÜI",
-    "‚¨‚Í‚æ‚é‚Ì‚¸‚­I"
+    "ãŠã¯ã‚ˆãƒ¼ï¼",
+    "ãŠã¯Yostarï¼ï¼",
+    "ãŠã¯ã‚‹ãªï¼ï¼",
+    "ãŠã¯ã‚ˆã‚“ã¾ï¼",
+    "ãŠã¯ã‚ˆã‚‹ã®ãšãï¼"
   ],
   "OyasumiMessages": [
-    "‚¨‚â‚·‚İ‚È‚³‚¢I",
-    "‚¨‚â‚·‚İ[‚Æ‚»[‚·I",
-    "‚¨‚â‚·‚İ‚¸[‚èI",
-    "‚¨‚â‚·‚İ‚Á‚Ç‚¤‚¥‚¢I",
-    "‚¨‚â‚·‚İ‚ç‚­‚é‚É‚«I",
-    "‚¨‚â‚·‚İ‚»‚µ‚éI"
+    "ãŠã‚„ã™ã¿ãªã•ã„ï¼",
+    "ãŠã‚„ã™ã¿ãƒ¼ã¨ããƒ¼ã™ï¼",
+    "ãŠã‚„ã™ã¿ãšãƒ¼ã‚Šï¼",
+    "ãŠã‚„ã™ã¿ã£ã©ã†ã‡ã„ï¼",
+    "ãŠã‚„ã™ã¿ã‚‰ãã‚‹ã«ãï¼",
+    "ãŠã‚„ã™ã¿ãã—ã‚‹ï¼"
   ],
   "OmikuziData": [
-    { "Weight": 2, "ResultMessage": "‚¨‚§I“V˜aƒ‚[ƒhI", "PostMessage": "–ğ–‚Æ‚©o‚¹‚¿‚á‚¤‚©‚àIH" },
-    { "Weight": 5, "ResultMessage": "‘å‹g", "PostMessage": "¡“ú‚ÍƒKƒ“ƒKƒ“‘Sƒc‚µ‚Ä‚¢‚±‚¤I" },
-    { "Weight": 10, "ResultMessage": "’†‹g", "PostMessage": "ƒCƒPƒCƒP‚¾‚ËI" },
-    { "Weight": 50, "ResultMessage": "¬‹g", "PostMessage": "–ƒ“ú˜a‚¾‚ËI" },
-    { "Weight": 100, "ResultMessage": "‹g", "PostMessage": "¡“ú‚à–ƒ‚ğŠy‚µ‚­—V‚Ú‚¤I" },
-    { "Weight": 8, "ResultMessage": "––‹g", "PostMessage": "‰Ÿ‚µˆø‚«‚É’ˆÓ‚µ‚È‚ª‚ç‘Å‚Æ‚¤I" },
-    { "Weight": 3, "ResultMessage": "‹¥", "PostMessage": "‚¤[‚ñA¡“ú‚Í~‚è‚ğ—Dæ‚µ‚½‚Ù‚¤‚ª‚¢‚¢‚©‚àH" },
-    { "Weight": 2, "ResultMessage": "‘å‹¥", "PostMessage": "¡“ú‚Í’iˆÊí‚É’ˆÓ‚µ‚Ä‚ËBBBI" },
-    { "Weight": 1, "ResultMessage": "‚ ‚¿‚á‚Ÿ...’n–ƒ‚[ƒh", "PostMessage": "–ğ–‚ÉU‚è‚ñ‚¶‚á‚¤‚©‚à‚µ‚ê‚È‚¢‚©‚ç‚¨‹x‚İ‚µ‚æ‚¤‚æI" }
+    { "Weight": 2, "ResultMessage": "ãŠã‰ï¼å¤©å’Œãƒ¢ãƒ¼ãƒ‰ï¼", "PostMessage": "å½¹æº€ã¨ã‹å‡ºã›ã¡ã‚ƒã†ã‹ã‚‚ï¼ï¼Ÿ" },
+    { "Weight": 5, "ResultMessage": "å¤§å‰", "PostMessage": "ä»Šæ—¥ã¯ã‚¬ãƒ³ã‚¬ãƒ³å…¨ãƒ„ã—ã¦ã„ã“ã†ï¼" },
+    { "Weight": 10, "ResultMessage": "ä¸­å‰", "PostMessage": "ã‚¤ã‚±ã‚¤ã‚±ã ã­ï¼" },
+    { "Weight": 50, "ResultMessage": "å°å‰", "PostMessage": "éº»é›€æ—¥å’Œã ã­ï¼" },
+    { "Weight": 100, "ResultMessage": "å‰", "PostMessage": "ä»Šæ—¥ã‚‚éº»é›€ã‚’æ¥½ã—ãéŠã¼ã†ï¼" },
+    { "Weight": 8, "ResultMessage": "æœ«å‰", "PostMessage": "æŠ¼ã—å¼•ãã«æ³¨æ„ã—ãªãŒã‚‰æ‰“ã¨ã†ï¼" },
+    { "Weight": 3, "ResultMessage": "å‡¶", "PostMessage": "ã†ãƒ¼ã‚“ã€ä»Šæ—¥ã¯é™ã‚Šã‚’å„ªå…ˆã—ãŸã»ã†ãŒã„ã„ã‹ã‚‚ï¼Ÿ" },
+    { "Weight": 2, "ResultMessage": "å¤§å‡¶", "PostMessage": "ä»Šæ—¥ã¯æ®µä½æˆ¦ã«æ³¨æ„ã—ã¦ã­ã€‚ã€‚ã€‚ï¼" },
+    { "Weight": 1, "ResultMessage": "ã‚ã¡ã‚ƒã...åœ°ç„ãƒ¢ãƒ¼ãƒ‰", "PostMessage": "å½¹æº€ã«æŒ¯ã‚Šè¾¼ã‚“ã˜ã‚ƒã†ã‹ã‚‚ã—ã‚Œãªã„ã‹ã‚‰ãŠä¼‘ã¿ã—ã‚ˆã†ã‚ˆï¼" }
   ]
 }

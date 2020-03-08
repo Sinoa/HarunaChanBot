@@ -77,8 +77,7 @@ namespace HarunaChanBot.Services
 
 
                     case "会話データをロードして":
-                        LoadKaiwaData();
-                        Application.Current.Post.ReplyMessage($"会話データを読み込んだよ！\nおはよう会話が、{kaiwaData.OhayoMessages.Length}件\nおやすみ会話が、{kaiwaData.OyasumiMessages.Length}件\nおみくじデータが、{kaiwaData.OmikuziData.Length}件あったよ！", message);
+                        DynamicLoadKaiwaData(message);
                         break;
                 }
             }
@@ -89,6 +88,13 @@ namespace HarunaChanBot.Services
         {
             var jsonData = File.ReadAllText("Assets/KaiwaData.json");
             kaiwaData = JsonConvert.DeserializeObject<KaiwaData>(jsonData);
+        }
+
+
+        private void DynamicLoadKaiwaData(SocketMessage message)
+        {
+            LoadKaiwaData();
+            Application.Current.Post.ReplyMessage($"会話データを読み込んだよ！\nおはよう会話が、{kaiwaData.OhayoMessages.Length}件\nおやすみ会話が、{kaiwaData.OyasumiMessages.Length}件\nおみくじデータが、{kaiwaData.OmikuziData.Length}件あったよ！", message);
         }
 
 
@@ -169,7 +175,7 @@ namespace HarunaChanBot.Services
         {
             var maxWeight = OmikuziData.Sum(x => x.Weight);
             var value = random.Next(0, maxWeight);
-            foreach (var omikuzi in OmikuziData)
+            foreach (var omikuzi in OmikuziData.OrderByDescending(x => x.Weight))
             {
                 value -= omikuzi.Weight;
                 if (value <= 0)
