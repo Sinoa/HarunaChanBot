@@ -24,14 +24,28 @@ namespace HarunaChanBot.Utils
 #else
         private static readonly string[] CommandHeaderTexts = new string[] { "陽菜ちゃん、", "お願い陽菜ちゃん、", "はるなちゃん、", "おねがいはるなちゃん、", "!HB:" };
 #endif
+        private static readonly List<string> CommandHeaderTextList = new List<string>();
 
+
+
+        static KaiwaParser()
+        {
+            CommandHeaderTextList.AddRange(CommandHeaderTexts);
+        }
+
+
+        public static void AddCommandHeaderText(string text)
+        {
+            if (CommandHeaderTextList.Contains(text)) return;
+            CommandHeaderTextList.Add(text);
+        }
 
 
         public static bool ParseMessageCommand(string message, out string command, out string[] arguments)
         {
             command = null;
             arguments = null;
-            foreach (var commandHeaderText in CommandHeaderTexts)
+            foreach (var commandHeaderText in CommandHeaderTextList)
             {
                 if (message.StartsWith(commandHeaderText))
                 {
@@ -62,6 +76,12 @@ namespace HarunaChanBot.Utils
             {
                 if (char.IsWhiteSpace(chara))
                 {
+                    if (charaList.Count == 0)
+                    {
+                        continue;
+                    }
+
+
                     stringList.Add(new string(charaList.ToArray()));
                     charaList.Clear();
                     continue;
