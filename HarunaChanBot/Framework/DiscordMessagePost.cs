@@ -37,7 +37,7 @@ namespace HarunaChanBot.Framework
 
         public void SendMessage(string message, SocketMessage socketMessage)
         {
-            transmissionMessageList.Add(new DiscordMessageObject(socketMessage.Channel, message));
+            SendMessage(message, socketMessage.Channel);
         }
 
 
@@ -49,13 +49,19 @@ namespace HarunaChanBot.Framework
 
         public void ReplyMessage(string message, SocketMessage socketMessage)
         {
-            transmissionMessageList.Add(new DiscordMessageObject(socketMessage.Channel, $"{socketMessage.Author.Mention} {message}"));
+            ReplyMessage(message, socketMessage, socketMessage.Channel, string.Empty);
         }
 
 
         public void ReplyMessage(string message, SocketMessage socketMessage, ISocketMessageChannel channel)
         {
-            transmissionMessageList.Add(new DiscordMessageObject(channel, $"{socketMessage.Author.Mention} {message}"));
+            ReplyMessage(message, socketMessage, channel, string.Empty);
+        }
+
+
+        public void ReplyMessage(string message, SocketMessage socketMessage, ISocketMessageChannel channel, string mentionSuffix)
+        {
+            transmissionMessageList.Add(new DiscordMessageObject(channel, $"{socketMessage.Author.Mention} {mentionSuffix} {message}"));
         }
     }
 }
