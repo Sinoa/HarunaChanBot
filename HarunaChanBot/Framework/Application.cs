@@ -14,10 +14,12 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Discord.Rest;
 using Discord.WebSocket;
 
 namespace HarunaChanBot.Framework
@@ -25,7 +27,12 @@ namespace HarunaChanBot.Framework
     public abstract class Application
     {
         private readonly DiscordSocketClient client;
+        private readonly List<SocketMessage> receivedMessageList;
+        private readonly List<DiscordMessageObject> transmissionMessageList;
 
+
+
+        public static Application Current { get; private set; }
 
 
         public bool Running { get; private set; }
@@ -34,9 +41,15 @@ namespace HarunaChanBot.Framework
         public double FrameNanoTime { get; private set; }
 
 
+        public DiscordMessagePost Post { get; }
+
+
 
         public Application()
         {
+            Current = this;
+
+
             client = new DiscordSocketClient();
             client.LoggedIn += Client_LoggedIn;
             client.LoggedOut += Client_LoggedOut;
@@ -44,6 +57,10 @@ namespace HarunaChanBot.Framework
             client.LeftGuild += Client_LeftGuild;
             client.GuildAvailable += Client_GuildAvailable;
             client.MessageReceived += Client_MessageReceived;
+
+
+            receivedMessageList = new List<SocketMessage>();
+            Post = new DiscordMessagePost(receivedMessageList.AsReadOnly(), transmissionMessageList);
 
 
             Initialize();
@@ -124,6 +141,7 @@ namespace HarunaChanBot.Framework
 
         private void OnMessageReceived_Core(SocketMessage message)
         {
+            receivedMessageList.Add(message);
             OnMessageReceived(message);
         }
 
@@ -222,12 +240,37 @@ namespace HarunaChanBot.Framework
 
                 messagePumpHandler();
                 Update_Core();
+                receivedMessageList.Clear();
+                SendDiscordMessage(messagePumpHandler);
                 spinwait.SpinOnce();
 
 
                 var tick = stopwatch.ElapsedTicks;
                 FrameNanoTime = tick / (double)Stopwatch.Frequency * 1000000000.0;
             }
+        }
+
+
+        private void SendDiscordMessage(Action messagePumpHandler)
+        {
+            if (transmissionMessageList.Count == 0) return;
+
+
+            var taskList = new List<Task<RestUserMessage>>();
+            foreach (var messageObject in transmissionMessageList)
+            {
+                taskList.Add(messageObject.TargetChannel.SendMessageAsync(messageObject.Message));
+            }
+
+
+            var waitTask = Task.WhenAll(taskList);
+            while (!waitTask.IsCompleted)
+            {
+                messagePumpHandler();
+            }
+
+
+            transmissionMessageList.Clear();
         }
 
 
