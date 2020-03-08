@@ -17,7 +17,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using Discord.WebSocket;
 using HarunaChanBot.Framework;
 using HarunaChanBot.Utils;
@@ -27,6 +26,9 @@ namespace HarunaChanBot.Services
 {
     public class HarunaChanQuestService : ApplicationService
     {
+        private static readonly List<string> maleTextList = new List<string>(new string[] { "男性", "男", "0", "Male" });
+        private static readonly List<string> femaleTextList = new List<string>(new string[] { "女性", "女", "1", "Female" });
+
         private GameData gameData;
         private Stopwatch stopwatch;
         private bool dirty;
@@ -156,6 +158,11 @@ namespace HarunaChanBot.Services
                     break;
 
 
+                case "性別の変更":
+                    ChangeGender(message, arguments ?? Array.Empty<string>());
+                    break;
+
+
                 case "はるなちゃんの状態":
                 case "陽菜ちゃんの状態":
                     ShowHarunaStatus(message);
@@ -177,6 +184,39 @@ namespace HarunaChanBot.Services
                 case "遊び方":
                     HowPlaying(message);
                     break;
+            }
+        }
+
+
+        private void ChangeGender(SocketMessage message, string[] arguments)
+        {
+            var playerData = GetPlayerData(message);
+
+
+            if (arguments.Length < 1)
+            {
+                Application.Current.Post.ReplyMessage(@"
+コマンドの引数が足りないよぉ
+男性なら：男性　か　男　か　0　か　Male
+女性なら：女性　か　女　か　1　か　Female
+を教えてね！", message, message.Channel, playerData.GetMentionSuffixText());
+                return;
+            }
+
+
+            if (maleTextList.Contains(arguments[0]))
+            {
+                playerData.Gender = GenderType.Male;
+                Application.Current.Post.ReplyMessage("性別を男性に変えたよ！", message, message.Channel, playerData.GetMentionSuffixText());
+            }
+            else if (femaleTextList.Contains(arguments[0]))
+            {
+                playerData.Gender = GenderType.Female;
+                Application.Current.Post.ReplyMessage("性別を女性に変えたよ！", message, message.Channel, playerData.GetMentionSuffixText());
+            }
+            else
+            {
+                Application.Current.Post.ReplyMessage($"{arguments[0]} ってどんな性別なの？陽菜わからない！", message, message.Channel, playerData.GetMentionSuffixText());
             }
         }
 
@@ -253,6 +293,11 @@ namespace HarunaChanBot.Services
 ・はるなちゃんの状態
 ・陽菜ちゃんの状態
 　はるなちゃんのステータスを確認できます。
+
+
+・性別の変更　引数１
+　現在のプレイヤーの性別を変更出来ます。
+　・引数１：男性への変更なら「男性、男、0、Male」を、女性への変更なら「女性、女、1、Female」を指定してください。
 
 
 ・チャンネルレート設定　引数１（管理者のみ）
