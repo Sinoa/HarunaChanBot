@@ -14,58 +14,44 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System;
-using System.Threading.Tasks;
+using HarunaChanBot.Framework;
+using HarunaChanBot.Services;
 
 namespace HarunaChanBot
 {
-    internal class ApplicationMain
+    internal class ApplicationMain : Application
     {
-        private BotClient botClient;
-
-
-
-        public static ApplicationContext Context { get; private set; }
-
-
-
         [STAThread]
         private static void Main()
         {
-            new ApplicationMain().RunAsync().Wait();
+            new ApplicationMain().Run();
         }
 
 
-        private async Task RunAsync()
+        protected override string GetBotToken()
         {
-            Console.WriteLine("Wakeup HarunaChanBot.");
+            var token = Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN");
+            return token;
+        }
 
 
-            Context = new ApplicationContext();
-            if (Context.Config == null)
-            {
-                Context.CreateConfig();
-                Console.WriteLine("コンフィグファイルが見つからなかったため、新しく生成しました。");
-                return;
-            }
+        protected override ulong GetSupervisorID()
+        {
+            var id = ulong.Parse(Environment.GetEnvironmentVariable("DISCORD_BOT_SVID"));
+            return id;
+        }
 
 
-            if (!Context.Config.IsSetuped)
-            {
-                Console.WriteLine("コンフィグがまだ未設定です。コンフィグの設定を完了してください。");
-                return;
-            }
+        protected override void InitializeService()
+        {
+            AddService(new SystemControlService());
+            AddService(new KaiwaService());
+        }
 
 
-            botClient = new BotClient();
-            var returnCode = await botClient.DoRunLoop(Context.Config.BotToken);
-
-
-            Console.WriteLine("Exited run loop.");
-            Context.SaveContext();
-            Console.WriteLine("Completed save context.");
-
-
-            Environment.ExitCode = returnCode;
+        protected override void OnLoggedIn()
+        {
+            Console.WriteLine("Completed Discord login.");
         }
     }
 }

@@ -93,6 +93,13 @@ namespace HarunaChanBot.Services
 
         private void DynamicLoadKaiwaData(SocketMessage message)
         {
+            if (message.Author.Id != Application.Current.SupervisorID)
+            {
+                Application.Current.Post.ReplyMessage("ごめんなさい、知らない人の言葉を信じちゃいけないってお母さんから言われているの。", message);
+                return;
+            }
+
+
             LoadKaiwaData();
             Application.Current.Post.ReplyMessage($"会話データを読み込んだよ！\nおはよう会話が、{kaiwaData.OhayoMessages.Length}件\nおやすみ会話が、{kaiwaData.OyasumiMessages.Length}件\nおみくじデータが、{kaiwaData.OmikuziData.Length}件あったよ！", message);
         }

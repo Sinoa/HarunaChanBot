@@ -45,10 +45,14 @@ namespace HarunaChanBot.Framework
         public DiscordMessagePost Post { get; }
 
 
+        public ulong SupervisorID { get; private set; }
+
+
 
         public Application()
         {
             Current = this;
+            SupervisorID = GetSupervisorID();
 
 
             client = new DiscordSocketClient();
@@ -212,6 +216,12 @@ namespace HarunaChanBot.Framework
         }
 
 
+        protected virtual ulong GetSupervisorID()
+        {
+            return 0;
+        }
+
+
         protected void AddService(ApplicationService service)
         {
             if (serviceList.Contains(service)) return;
@@ -228,6 +238,12 @@ namespace HarunaChanBot.Framework
 
 
             return null;
+        }
+
+
+        public void Quit()
+        {
+            AsyncOperationManager.SynchronizationContext.Post(x => { Running = false; }, null);
         }
 
 
