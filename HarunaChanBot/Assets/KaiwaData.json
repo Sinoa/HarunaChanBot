@@ -1,0 +1,28 @@
+{
+  "OhayoMessages": [
+    "おはよー！",
+    "おはYostar！！",
+    "おはるな！！",
+    "おはよんま！",
+    "おはよるのずく！"
+  ],
+  "OyasumiMessages": [
+    "おやすみなさい！",
+    "おやすみーとそーす！",
+    "おやすみずーり！",
+    "おやすみっどうぇい！",
+    "おやすみらくるにき！",
+    "おやすみそしる！"
+  ],
+  "OmikuziData": [
+    { "Weight": 2, "ResultMessage": "おぉ！天和モード！", "PostMessage": "役満とか出せちゃうかも！？" },
+    { "Weight": 5, "ResultMessage": "大吉", "PostMessage": "今日はガンガン全ツしていこう！" },
+    { "Weight": 10, "ResultMessage": "中吉", "PostMessage": "イケイケだね！" },
+    { "Weight": 50, "ResultMessage": "小吉", "PostMessage": "麻雀日和だね！" },
+    { "Weight": 100, "ResultMessage": "吉", "PostMessage": "今日も麻雀を楽しく遊ぼう！" },
+    { "Weight": 8, "ResultMessage": "末吉", "PostMessage": "押し引きに注意しながら打とう！" },
+    { "Weight": 3, "ResultMessage": "凶", "PostMessage": "うーん、今日は降りを優先したほうがいいかも？" },
+    { "Weight": 2, "ResultMessage": "大凶", "PostMessage": "今日は段位戦に注意してね。。。！" },
+    { "Weight": 1, "ResultMessage": "あちゃぁ...地獄モード", "PostMessage": "役満に振り込んじゃうかもしれないからお休みしようよ！" }
+  ]
+}

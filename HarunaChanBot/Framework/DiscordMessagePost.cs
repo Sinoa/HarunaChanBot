@@ -35,9 +35,27 @@ namespace HarunaChanBot.Framework
         }
 
 
+        public void SendMessage(string message, SocketMessage socketMessage)
+        {
+            transmissionMessageList.Add(new DiscordMessageObject(socketMessage.Channel, message));
+        }
+
+
         public void SendMessage(string message, ISocketMessageChannel channel)
         {
             transmissionMessageList.Add(new DiscordMessageObject(channel, message));
+        }
+
+
+        public void ReplyMessage(string message, SocketMessage socketMessage)
+        {
+            transmissionMessageList.Add(new DiscordMessageObject(socketMessage.Channel, $"{socketMessage.Author.Mention} {message}"));
+        }
+
+
+        public void ReplyMessage(string message, SocketMessage socketMessage, ISocketMessageChannel channel)
+        {
+            transmissionMessageList.Add(new DiscordMessageObject(channel, $"{socketMessage.Author.Mention} {message}"));
         }
     }
 }
