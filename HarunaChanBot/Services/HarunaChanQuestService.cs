@@ -38,9 +38,12 @@ namespace HarunaChanBot.Services
         {
 #if DEBUG
             KaiwaParser.AddCommandHeaderText("のあちゃんくえすと、");
+            KaiwaParser.AddCommandHeaderText("のあちゃんクエスト、");
 #else
             KaiwaParser.AddCommandHeaderText("陽菜ちゃんくえすと、");
             KaiwaParser.AddCommandHeaderText("はるなちゃんくえすと、");
+            KaiwaParser.AddCommandHeaderText("陽菜ちゃんクエスト、");
+            KaiwaParser.AddCommandHeaderText("はるなちゃんクエスト、");
 #endif
 
 
@@ -118,6 +121,7 @@ namespace HarunaChanBot.Services
                 gameData = new GameData();
                 gameData.HarunaChan = new HarunaGameData()
                 {
+                    Level = 1,
                     Exp = 0,
                     Energy = HarunaGameData.MAX_ENERGY,
                 };
@@ -140,6 +144,133 @@ namespace HarunaChanBot.Services
                 AddExp(message);
                 return;
             }
+
+
+            switch (command)
+            {
+                case "ステータス確認":
+                case "ステータス表示":
+                case "ステータスの確認":
+                case "ステータスの表示":
+                    ShowPlayerStatus(message);
+                    break;
+
+
+                case "はるなちゃんの状態":
+                case "陽菜ちゃんの状態":
+                    ShowHarunaStatus(message);
+                    break;
+
+
+                case "チャンネルレート設定":
+                case "チャンネルレートの設定":
+                    SetChannelRate(message, arguments ?? Array.Empty<string>());
+                    break;
+
+
+                case "チャンネルレート確認":
+                case "チャンネルレートの確認":
+                    ShowChannelRate(message);
+                    break;
+
+
+                case "遊び方":
+                    HowPlaying(message);
+                    break;
+            }
+        }
+
+
+        private void ShowPlayerStatus(SocketMessage message)
+        {
+            var playerData = GetPlayerData(message);
+            Application.Current.Post.ReplyMessage($@"
+レベル：{playerData.Level}
+経験値：{playerData.Exp} / {expTable[playerData.Level]}
+コイン：{playerData.Coin}
+性別：{playerData.Gender}", message);
+        }
+
+
+        private void ShowHarunaStatus(SocketMessage message)
+        {
+            var harunaData = gameData.HarunaChan;
+            Application.Current.Post.ReplyMessage($@"
+レベル：{harunaData.Level}
+経験値：{harunaData.Exp} / {expTable[harunaData.Level]}
+満腹度：{harunaData.Energy} / {HarunaGameData.MAX_ENERGY}", message);
+        }
+
+
+        private void SetChannelRate(SocketMessage message, string[] arguments)
+        {
+            if (arguments.Length < 1)
+            {
+                Application.Current.Post.ReplyMessage("コマンドの引数が足りないよぉ", message);
+                return;
+            }
+
+
+            if (message.Author.Id != Application.Current.SupervisorID)
+            {
+                Application.Current.Post.ReplyMessage("ごめんなさい。このコマンドはかんりしゃの人だけしか使っちゃいけないってお母さんに言われてるの。", message);
+                return;
+            }
+
+
+            var channelRate = GetChannelRate(message);
+            var currentRate = channelRate.Rate;
+            channelRate.Rate = double.Parse(arguments[0]);
+            Application.Current.Post.ReplyMessage($"{message.Channel.Name}({message.Channel.Id}) のレートを {currentRate} -> {channelRate.Rate} に変更したよ！", message);
+        }
+
+
+        private void ShowChannelRate(SocketMessage message)
+        {
+            Application.Current.Post.ReplyMessage($"{message.Channel.Name}({message.Channel.Id}) のレートは {GetChannelRate(message).Rate} だよ！", message);
+        }
+
+
+        private void HowPlaying(SocketMessage message)
+        {
+            Application.Current.Post.ReplyMessage($@"
+はるなちゃんクエストは、陽菜ちゃんbotが所属するディスコードサーバーへの発言をすると、プレイヤーが成長してさらに特定条件を満たすと、コインが貰えます。
+もらったコインは陽菜ちゃんにアイスを買ってあげることで、陽菜ちゃんの満腹度が回復します。満腹度は時間とともに消費されて経験値になります。
+増えた経験値は陽菜ちゃんの成長に繋がります。
+
+コマンド一覧：
+・ステータス確認
+・ステータス表示
+・ステータスの確認
+・ステータスの表示
+　現在のプレイヤー状態を確認できます。
+
+
+・はるなちゃんの状態
+・陽菜ちゃんの状態
+　はるなちゃんのステータスを確認できます。
+
+
+・チャンネルレート設定　引数１（管理者のみ）
+・チャンネルレートの設定　引数１（管理者のみ）
+　このコマンドを実行したチャンネルの経験値入手レートを設定します
+　・引数１：レートを実数として入力
+
+
+・チャンネルレート確認
+・チャンネルレートの確認
+　このコマンドを実行したチャンネルの現在の経験値入手レートを表示します
+
+
+・遊び方
+　この説明文を出してくれます。
+
+
+攻略のヒント：
+牌譜検証をしたり、麻雀部屋で麻雀の話をしているといいことあるかも？
+
+注意：
+コマンド発言は経験値取得対象外です。", message);
         }
 
 
@@ -164,7 +295,7 @@ namespace HarunaChanBot.Services
             var contentLength = message.Content.Length;
 
 
-            playerData.Exp += (int)(contentLength * channelRate);
+            playerData.Exp += (int)(contentLength * channelRate.Rate);
 
 
             var currentLevel = playerData.Level;
@@ -190,18 +321,22 @@ namespace HarunaChanBot.Services
         }
 
 
-        private double GetChannelRate(SocketMessage message)
+        private ChannelRate GetChannelRate(SocketMessage message)
         {
             var table = gameData.ChannelRateTable;
             var id = message.Channel.Id;
 
-            if (!table.ContainsKey(id))
+
+            if (!table.TryGetValue(id, out var rate))
             {
-                return 1.0;
+                rate = new ChannelRate();
+                rate.ID = id;
+                rate.Rate = 1.0;
+                table[id] = rate;
             }
 
 
-            return gameData.ChannelRateTable[message.Channel.Id].Rate;
+            return rate;
         }
 
 
@@ -219,6 +354,7 @@ namespace HarunaChanBot.Services
                     Level = 1,
                     Exp = 0,
                     Coin = 100,
+                    Gender = GenderType.Male,
                 };
 
 
@@ -228,6 +364,14 @@ namespace HarunaChanBot.Services
 
             return data;
         }
+    }
+
+
+
+    public enum GenderType : int
+    {
+        Male = 0,
+        Female = 1,
     }
 
 
@@ -246,6 +390,7 @@ namespace HarunaChanBot.Services
         public int Exp { get; set; }
         public int Coin { get; set; }
         public DateTimeOffset LastSendMessageTimestamp { get; set; }
+        public GenderType Gender { get; set; }
     }
 
 
@@ -256,7 +401,7 @@ namespace HarunaChanBot.Services
 
 
 
-        public int Level { get; }
+        public int Level { get; set; }
         public int Exp { get; set; }
         public int Energy { get; set; }
     }
