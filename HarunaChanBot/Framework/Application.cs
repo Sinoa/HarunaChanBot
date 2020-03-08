@@ -61,6 +61,7 @@ namespace HarunaChanBot.Framework
 
 
             receivedMessageList = new List<SocketMessage>();
+            transmissionMessageList = new List<DiscordMessageObject>();
             Post = new DiscordMessagePost(receivedMessageList.AsReadOnly(), transmissionMessageList);
 
 
