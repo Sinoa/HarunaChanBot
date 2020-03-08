@@ -20,5 +20,10 @@ namespace HarunaChanBot.Framework
         protected internal virtual void Update()
         {
         }
+
+
+        protected internal virtual void Terminate()
+        {
+        }
     }
 }

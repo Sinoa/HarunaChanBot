@@ -287,6 +287,9 @@ namespace HarunaChanBot.Framework
                 var tick = stopwatch.ElapsedTicks;
                 FrameNanoTime = tick / (double)Stopwatch.Frequency * 1000000000.0;
             }
+
+
+            TerminateService();
         }
 
 
@@ -295,6 +298,15 @@ namespace HarunaChanBot.Framework
             foreach (var service in serviceList)
             {
                 service.Update();
+            }
+        }
+
+
+        private void TerminateService()
+        {
+            foreach (var service in serviceList)
+            {
+                service.Terminate();
             }
         }
 
