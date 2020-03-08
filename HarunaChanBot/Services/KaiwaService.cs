@@ -53,6 +53,13 @@ namespace HarunaChanBot.Services
                         break;
 
 
+                    case "こんにちは":
+                    case "こんにちわ":
+                    case "こんちは":
+                    case "こんちわ":
+                        break;
+
+
                     case "おはよう":
                     case "おはよ":
                     case "おはようございます":
@@ -120,7 +127,7 @@ namespace HarunaChanBot.Services
 
         private void Repeat(SocketMessage message, string[] arguments)
         {
-            if (arguments.Length < 1)
+            if (arguments == null || arguments.Length < 1)
             {
                 Application.Current.Post.ReplyMessage("陽菜、なんて言えばいいの？", message);
             }
@@ -133,7 +140,7 @@ namespace HarunaChanBot.Services
 
         private void Henzi(SocketMessage message, string[] arguments)
         {
-            if (arguments.Length < 1)
+            if (arguments == null || arguments.Length < 1)
             {
                 Application.Current.Post.ReplyMessage("陽菜、なんて返事をすればいいの？", message);
             }
