@@ -15,6 +15,8 @@
 
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using Discord.WebSocket;
 
@@ -27,6 +29,9 @@ namespace HarunaChanBot.Framework
 
 
         public bool Running { get; private set; }
+
+
+        public double FrameNanoTime { get; private set; }
 
 
 
@@ -190,15 +195,31 @@ namespace HarunaChanBot.Framework
             }
 
 
+            DoMainLoop(messagePumpHandler);
+            ShutdownDiscord(messagePumpHandler);
+        }
+
+
+        private void DoMainLoop(Action messagePumpHandler)
+        {
+            var stopwatch = new Stopwatch();
+            var spinwait = new SpinWait();
+
+
             Running = true;
             while (Running)
             {
+                stopwatch.Restart();
+
+
                 messagePumpHandler();
                 Update_Core();
+                spinwait.SpinOnce();
+
+
+                var tick = stopwatch.ElapsedTicks;
+                FrameNanoTime = tick / (double)Stopwatch.Frequency * 1000000000.0;
             }
-
-
-            ShutdownDiscord(messagePumpHandler);
         }
 
 
