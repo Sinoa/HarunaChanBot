@@ -19,7 +19,11 @@ namespace HarunaChanBot.Utils
 {
     public static class KaiwaParser
     {
+#if DEBUG
+        private static readonly string[] CommandHeaderTexts = new string[] { "のあちゃん、" };
+#else
         private static readonly string[] CommandHeaderTexts = new string[] { "陽菜ちゃん、", "お願い陽菜ちゃん、", "はるなちゃん、", "おねがいはるなちゃん、", "!HB:" };
+#endif
 
 
 

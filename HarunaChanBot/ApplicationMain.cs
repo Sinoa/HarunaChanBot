@@ -53,5 +53,11 @@ namespace HarunaChanBot
         {
             Console.WriteLine("Completed Discord login.");
         }
+
+
+        protected override void OnLoggedOut()
+        {
+            Console.WriteLine("Completed Discord logout.");
+        }
     }
 }
