@@ -29,6 +29,7 @@ namespace HarunaChanBot.Framework
         private readonly DiscordSocketClient client;
         private readonly List<SocketMessage> receivedMessageList;
         private readonly List<DiscordMessageObject> transmissionMessageList;
+        private readonly List<ApplicationService> serviceList;
 
 
 
@@ -63,7 +64,8 @@ namespace HarunaChanBot.Framework
             Post = new DiscordMessagePost(receivedMessageList.AsReadOnly(), transmissionMessageList);
 
 
-            Initialize();
+            serviceList = new List<ApplicationService>();
+            InitializeService();
         }
 
 
@@ -158,7 +160,7 @@ namespace HarunaChanBot.Framework
         }
 
 
-        protected virtual void Initialize()
+        protected virtual void InitializeService()
         {
         }
 
@@ -209,6 +211,25 @@ namespace HarunaChanBot.Framework
         }
 
 
+        protected void AddService(ApplicationService service)
+        {
+            if (serviceList.Contains(service)) return;
+            serviceList.Add(service);
+        }
+
+
+        public T GetService<T>() where T : ApplicationService
+        {
+            foreach (var service in serviceList)
+            {
+                if (service is T) return (T)service;
+            }
+
+
+            return null;
+        }
+
+
         public void Run()
         {
             AsyncOperationManager.SynchronizationContext = new DiscordSynchronizationContext(out var messagePumpHandler);
@@ -240,6 +261,7 @@ namespace HarunaChanBot.Framework
 
                 messagePumpHandler();
                 Update_Core();
+                UpdateService();
                 receivedMessageList.Clear();
                 SendDiscordMessage(messagePumpHandler);
                 spinwait.SpinOnce();
@@ -247,6 +269,15 @@ namespace HarunaChanBot.Framework
 
                 var tick = stopwatch.ElapsedTicks;
                 FrameNanoTime = tick / (double)Stopwatch.Frequency * 1000000000.0;
+            }
+        }
+
+
+        private void UpdateService()
+        {
+            foreach (var service in serviceList)
+            {
+                service.Update();
             }
         }
 
