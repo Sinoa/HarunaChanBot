@@ -74,7 +74,8 @@ namespace HarunaChanBot.Services
             var channelName = message.Channel.Name;
             var userName = message.Author.Username;
             var userID = message.Author.Id;
-            var logText = $"[{timestamp}]\nChannel={channelName}\nUserName={userName}({userID})\n{messageText}\n\n";
+            var isBot = message.Author.IsBot;
+            var logText = $"[{timestamp}]\nChannel={channelName}\nUserName={userName}({userID})\nIsBot={isBot}\n{messageText}\n\n";
             writer.Write(logText);
 
 
