@@ -252,6 +252,7 @@ namespace HarunaChanBot.Framework
             AsyncOperationManager.SynchronizationContext = new DiscordSynchronizationContext(out var messagePumpHandler);
 
 
+            InitializeServiceWait(messagePumpHandler);
             if (!StartupDiscord(messagePumpHandler))
             {
                 OnStartupFailed_Core();
@@ -261,6 +262,23 @@ namespace HarunaChanBot.Framework
 
             DoMainLoop(messagePumpHandler);
             ShutdownDiscord(messagePumpHandler);
+        }
+
+
+        private void InitializeServiceWait(Action messagePumpHandler)
+        {
+            var taskList = new List<Task>();
+            foreach (var service in serviceList)
+            {
+                taskList.Add(service.Startup());
+            }
+
+
+            var taskWaitTask = Task.WhenAll(taskList);
+            while (!taskWaitTask.IsCompleted)
+            {
+                messagePumpHandler();
+            }
         }
 
 
