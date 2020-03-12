@@ -14,32 +14,27 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
-using Discord.WebSocket;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Firebase.Database.Query;
 using HarunaChanBot.Framework;
 
 namespace HarunaChanBot.Services
 {
     public class MessageLoggingService : ApplicationService
     {
-        private Stopwatch stopwatch;
-        private StreamWriter writer;
-        private bool dirty;
+        public const string BasePath = "ChannelMessageLog";
+
+        private Dictionary<string, ChildQuery> queryTable;
+        private Queue<ChannelMessageLog> logQueue;
+        private Task sendTask;
 
 
 
         public MessageLoggingService()
         {
-            if (!Directory.Exists("Log"))
-            {
-                Directory.CreateDirectory("Log");
-            }
-
-
-            writer = new StreamWriter("Log/message.log", true, new UTF8Encoding(false));
-            stopwatch = Stopwatch.StartNew();
+            queryTable = new Dictionary<string, ChildQuery>();
+            logQueue = new Queue<ChannelMessageLog>();
         }
 
 
@@ -47,39 +42,64 @@ namespace HarunaChanBot.Services
         {
             foreach (var message in Application.Current.Post.ReceivedMessageList)
             {
-                dirty = true;
-                AddLog(message);
+                var messageLog = new ChannelMessageLog();
+                messageLog.ChannelName = message.Channel.Name;
+                messageLog.Timestamp = message.Timestamp.ToOffset(TimeSpan.FromHours(9.0));
+                messageLog.UserName = message.Author.Username;
+                messageLog.UserID = message.Author.Id;
+                messageLog.IsBot = message.Author.IsBot;
+                messageLog.MessageText = message.Content;
+
+
+                logQueue.Enqueue(messageLog);
             }
 
 
-            if (stopwatch.ElapsedMilliseconds >= 30 * 1000 && dirty)
+            if (logQueue.Count == 0)
             {
-                dirty = false;
-                writer.Flush();
-                stopwatch.Restart();
+                return;
             }
+
+
+            if (sendTask != null && !sendTask.IsCompleted)
+            {
+                return;
+            }
+
+
+            var log = logQueue.Dequeue();
+            if (!queryTable.TryGetValue(log.ChannelName, out var query))
+            {
+                query = Application.Current.GetService<DatabaseService>().CreateQuery($"{BasePath}/{log.ChannelName}");
+                queryTable[log.ChannelName] = query;
+            }
+
+
+            sendTask = query.PutAsync(log);
         }
 
 
         protected internal override void Terminate()
         {
-            writer.Dispose();
+            foreach (var queryKV in queryTable)
+            {
+                queryKV.Value.Dispose();
+            }
+
+
+            queryTable.Clear();
         }
+    }
 
 
-        private void AddLog(SocketMessage message)
-        {
-            var timestamp = message.Timestamp.ToOffset(TimeSpan.FromHours(9.0));
-            var messageText = message.Content;
-            var channelName = message.Channel.Name;
-            var userName = message.Author.Username;
-            var userID = message.Author.Id;
-            var isBot = message.Author.IsBot;
-            var logText = $"[{timestamp}]\nChannel={channelName}\nUserName={userName}({userID})\nIsBot={isBot}\n{messageText}\n\n";
-            writer.Write(logText);
 
-
-            Console.Write(logText);
-        }
+    public class ChannelMessageLog
+    {
+        public string ChannelName { get; set; }
+        public DateTimeOffset Timestamp { get; set; }
+        public string UserName { get; set; }
+        public ulong UserID { get; set; }
+        public bool IsBot { get; set; }
+        public string MessageText { get; set; }
     }
 }

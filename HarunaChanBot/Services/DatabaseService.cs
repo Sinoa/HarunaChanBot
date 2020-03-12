@@ -55,7 +55,7 @@ namespace HarunaChanBot.Services
         }
 
 
-        public object CreateQuery(string path)
+        public ChildQuery CreateQuery(string path)
         {
             return database.Child(path);
         }
