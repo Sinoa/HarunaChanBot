@@ -75,7 +75,7 @@ namespace HarunaChanBot.Services
             }
 
 
-            sendTask = query.PutAsync(log);
+            sendTask = query.PostAsync(log);
         }
 
 

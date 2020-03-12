@@ -44,6 +44,7 @@ namespace HarunaChanBot
 
         protected override void InitializeService()
         {
+            AddService(new DatabaseService());
             AddService(new AmazonUrlConvertService());
             AddService(new HarunaChanQuestService());
             AddService(new MessageLoggingService());
