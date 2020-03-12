@@ -15,7 +15,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Firebase.Database.Query;
 using HarunaChanBot.Framework;
 
@@ -25,20 +24,45 @@ namespace HarunaChanBot.Services
     {
         public const string BasePath = "ChannelMessageLog";
 
+        private ImtStateMachine<MessageLoggingService> stateMachine;
         private Dictionary<string, ChildQuery> queryTable;
         private Queue<ChannelMessageLog> logQueue;
-        private Task sendTask;
 
 
 
         public MessageLoggingService()
         {
+            stateMachine = new ImtStateMachine<MessageLoggingService>(this);
             queryTable = new Dictionary<string, ChildQuery>();
             logQueue = new Queue<ChannelMessageLog>();
+
+
+            stateMachine.SetStartState<IdleState>();
+            stateMachine.AddTransition<IdleState, SendingState>(1);
+            stateMachine.AddTransition<SendingState, IdleState>(1);
         }
 
 
         protected internal override void Update()
+        {
+            ReceiveMessages();
+            stateMachine.Update();
+        }
+
+
+        protected internal override void Terminate()
+        {
+            foreach (var queryKV in queryTable)
+            {
+                queryKV.Value.Dispose();
+            }
+
+
+            queryTable.Clear();
+        }
+
+
+        private void ReceiveMessages()
         {
             foreach (var message in Application.Current.Post.ReceivedMessageList)
             {
@@ -53,41 +77,38 @@ namespace HarunaChanBot.Services
 
                 logQueue.Enqueue(messageLog);
             }
-
-
-            if (logQueue.Count == 0)
-            {
-                return;
-            }
-
-
-            if (sendTask != null && !sendTask.IsCompleted)
-            {
-                return;
-            }
-
-
-            var log = logQueue.Dequeue();
-            if (!queryTable.TryGetValue(log.ChannelName, out var query))
-            {
-                query = Application.Current.GetService<DatabaseService>().CreateQuery($"{BasePath}/{log.ChannelName}");
-                queryTable[log.ChannelName] = query;
-            }
-
-
-            sendTask = query.PostAsync(log);
         }
 
 
-        protected internal override void Terminate()
+
+        private class IdleState : ImtStateMachine<MessageLoggingService>.State
         {
-            foreach (var queryKV in queryTable)
+            protected internal override void Update()
             {
-                queryKV.Value.Dispose();
+                if (Context.logQueue.Count > 0)
+                {
+                    StateMachine.SendEvent(1);
+                }
             }
+        }
 
 
-            queryTable.Clear();
+        private class SendingState : ImtStateMachine<MessageLoggingService>.State
+        {
+            protected internal override async void Enter()
+            {
+                var log = Context.logQueue.Dequeue();
+                if (!Context.queryTable.TryGetValue(log.ChannelName, out var query))
+                {
+                    query = Application.Current.GetService<DatabaseService>().CreateQuery($"{BasePath}/{log.ChannelName}");
+                    Context.queryTable[log.ChannelName] = query;
+                }
+
+
+                var result = await query.PostAsync(log);
+                Console.WriteLine($"[{result.Key}] {log.Timestamp}");
+                StateMachine.SendEvent(1);
+            }
         }
     }
 
