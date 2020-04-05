@@ -30,6 +30,7 @@ namespace HarunaChanBot.Framework
         private readonly List<SocketMessage> receivedMessageList;
         private readonly List<DiscordMessageObject> transmissionMessageList;
         private readonly List<ApplicationService> serviceList;
+        private SynchronizationContext synchronizationContext;
 
 
 
@@ -76,42 +77,42 @@ namespace HarunaChanBot.Framework
 
         private Task Client_LoggedIn()
         {
-            AsyncOperationManager.SynchronizationContext.Post(x => OnLoggedIn_Core(), null);
+            synchronizationContext.Post(x => OnLoggedIn_Core(), null);
             return Task.CompletedTask;
         }
 
 
         private Task Client_LoggedOut()
         {
-            AsyncOperationManager.SynchronizationContext.Post(x => OnLoggedOut_Core(), null);
+            synchronizationContext.Post(x => OnLoggedOut_Core(), null);
             return Task.CompletedTask;
         }
 
 
         private Task Client_JoinedGuild(SocketGuild arg)
         {
-            AsyncOperationManager.SynchronizationContext.Post(x => OnJoinGuild_Core((SocketGuild)x), arg);
+            synchronizationContext.Post(x => OnJoinGuild_Core((SocketGuild)x), arg);
             return Task.CompletedTask;
         }
 
 
         private Task Client_LeftGuild(SocketGuild arg)
         {
-            AsyncOperationManager.SynchronizationContext.Post(x => OnLeaveGuild_Core((SocketGuild)x), arg);
+            synchronizationContext.Post(x => OnLeaveGuild_Core((SocketGuild)x), arg);
             return Task.CompletedTask;
         }
 
 
         private Task Client_GuildAvailable(SocketGuild arg)
         {
-            AsyncOperationManager.SynchronizationContext.Post(x => OnGuildAvailable_Core((SocketGuild)x), arg);
+            synchronizationContext.Post(x => OnGuildAvailable_Core((SocketGuild)x), arg);
             return Task.CompletedTask;
         }
 
 
         private Task Client_MessageReceived(SocketMessage arg)
         {
-            AsyncOperationManager.SynchronizationContext.Post(x => OnMessageReceived_Core((SocketMessage)x), arg);
+            synchronizationContext.Post(x => OnMessageReceived_Core((SocketMessage)x), arg);
             return Task.CompletedTask;
         }
 
@@ -243,13 +244,14 @@ namespace HarunaChanBot.Framework
 
         public void Quit()
         {
-            AsyncOperationManager.SynchronizationContext.Post(x => { Running = false; }, null);
+            synchronizationContext.Post(x => { Running = false; }, null);
         }
 
 
         public void Run()
         {
             AsyncOperationManager.SynchronizationContext = new DiscordSynchronizationContext(out var messagePumpHandler);
+            synchronizationContext = AsyncOperationManager.SynchronizationContext;
 
 
             if (!StartupDiscord(messagePumpHandler))
