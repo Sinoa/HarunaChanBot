@@ -42,6 +42,7 @@ namespace HarunaChanBot.Services
                 var playerData = service.GetPlayerData(message);
                 var deck = Shuffle(CreateDeck(), DsfmtRandom.Create());
                 var haipai = TakePai(deck);
+                Array.Sort(haipai);
                 var buffer = new StringBuilder();
                 foreach (var chara in haipai.Select(x => ToMahjongChara(x)))
                 {
@@ -49,8 +50,7 @@ namespace HarunaChanBot.Services
                 }
 
 
-                var twitterText = Uri.EscapeUriString($"今回の配牌\n{buffer}\n\n#麻雀\n#配牌");
-                Application.Current.Post.ReplyMessage($"今回の配牌はこれだよ！\n{buffer}\nTwitter投稿はこちら：https://twitter.com/intent/tweet?text={twitterText}", message, message.Channel, playerData.GetMentionSuffixText());
+                Application.Current.Post.ReplyMessage($"今回の配牌はこれだよ！\n{buffer}", message, message.Channel, playerData.GetMentionSuffixText());
             }
         }
 
