@@ -49,6 +49,7 @@ namespace HarunaChanBot
             AddService(new MessageLoggingService());
             AddService(new SystemControlService());
             AddService(new KaiwaService());
+            AddService(new HaipaiService());
         }
 
 
