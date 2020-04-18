@@ -50,7 +50,8 @@ namespace HarunaChanBot.Services
                 }
 
 
-                Application.Current.Post.ReplyMessage($"今回の配牌はこれだよ！\n{buffer}", message, message.Channel, playerData.GetMentionSuffixText());
+                var doraShowPai = ToMahjongChara(deck[deck.Length - 5]);
+                Application.Current.Post.ReplyMessage($"今回の配牌はこれだよ！\nドラ表示牌：{doraShowPai}\n{buffer}", message, message.Channel, playerData.GetMentionSuffixText());
             }
         }
 
@@ -168,6 +169,11 @@ namespace HarunaChanBot.Services
             else if (0x36 == data)
             {
                 char lowSurrogate = (char)(0xDC04);
+                return new string(new char[] { highSurrogate, lowSurrogate });
+            }
+            else if (0x80 == data)
+            {
+                char lowSurrogate = (char)(0xDC2B);
                 return new string(new char[] { highSurrogate, lowSurrogate });
             }
 
