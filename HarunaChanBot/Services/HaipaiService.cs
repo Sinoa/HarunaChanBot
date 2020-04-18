@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Linq;
 using System.Text;
 using HarunaChanBot.Framework;
@@ -49,9 +50,11 @@ namespace HarunaChanBot.Services
                     }
                 }
 
+                var random = DsfmtRandom.Create();
                 var playerData = service.GetPlayerData(message);
-                var deck = Shuffle(CreateDeck(), DsfmtRandom.Create());
+                var deck = Shuffle(CreateDeck(), random);
                 var haipai = TakePai(deck);
+//                haipai = haipai.Select(x => (x & 0x40) != 0 ? (true, (byte)(x & 0x40)) : (false, x)).OrderBy(x => x.Item2).Select(x => (byte)(x.Item1 ? x.Item2 | 0x40 : x.Item2)).ToArray();
                 Array.Sort(haipai);
                 var buffer = new StringBuilder();
                 foreach (var chara in haipai.Select(x => stampFlag ? ToMahjongStamp(x) : ToMahjongChara(x)))
@@ -60,11 +63,14 @@ namespace HarunaChanBot.Services
                 }
 
 
+                var kyoku = random.Next(0, 1) == 0 ? "東" : "南";
+                var number = random.Next(1, 5);
+                var roll = random.Next(0, 1) == 0 ? "親" : "子";
                 var doraShowID = deck[deck.Length - 5];
                 var doraShowPai = stampFlag ? ToMahjongStamp(doraShowID) : ToMahjongChara(doraShowID);
                 var tumoPaiID = TakeTumo(deck);
                 var tumoPai = stampFlag ? ToMahjongStamp(tumoPaiID) : ToMahjongChara(tumoPaiID);
-                Application.Current.Post.ReplyMessage($"今回の配牌はこれだよ！\nドラ表示牌：{doraShowPai}\n{buffer}　ツモ：{tumoPai}", message, message.Channel, playerData.GetMentionSuffixText());
+                Application.Current.Post.ReplyMessage($"今回の配牌はこれだよ！\n{kyoku}{number}局 {roll}\nドラ表示牌：{doraShowPai}\n{buffer}　ツモ：{tumoPai}", message, message.Channel, playerData.GetMentionSuffixText());
             }
         }
 
