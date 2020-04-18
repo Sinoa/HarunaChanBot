@@ -62,7 +62,9 @@ namespace HarunaChanBot.Services
 
                 var doraShowID = deck[deck.Length - 5];
                 var doraShowPai = stampFlag ? ToMahjongStamp(doraShowID) : ToMahjongChara(doraShowID);
-                Application.Current.Post.ReplyMessage($"今回の配牌はこれだよ！\nドラ表示牌：{doraShowPai}\n{buffer}", message, message.Channel, playerData.GetMentionSuffixText());
+                var tumoPaiID = TakeTumo(deck);
+                var tumoPai = stampFlag ? ToMahjongStamp(tumoPaiID) : ToMahjongChara(tumoPaiID);
+                Application.Current.Post.ReplyMessage($"今回の配牌はこれだよ！\nドラ表示牌：{doraShowPai}\n{buffer}　ツモ：{tumoPai}", message, message.Channel, playerData.GetMentionSuffixText());
             }
         }
 
@@ -81,6 +83,12 @@ namespace HarunaChanBot.Services
 
             pai[12] = deck[3 * 12 + 4 + 1];
             return pai;
+        }
+
+
+        private byte TakeTumo(byte[] deck)
+        {
+            return deck[3 * 12 + 4 + 1 + 1];
         }
 
 
