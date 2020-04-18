@@ -93,7 +93,7 @@ namespace HarunaChanBot.Services
                 {
                     for (int k = 0; k < 4; ++k)
                     {
-                        var cat = (i & 3) << 4 | ((j == 5 && k == 0) ? 0x40 : 0x00);
+                        var cat = (i & 3) << 4 | ((j == 4 && k == 0) ? 0x40 : 0x00);
                         var num = (j + 1) & 0x0F;
                         deck[i * 36 + j * 4 + k] = (byte)(cat | num);
                     }
