@@ -41,6 +41,7 @@ namespace HarunaChanBot.Services
                 if (command != "配牌して" && command != "はいぱいして") continue;
 
                 var stampFlag = true;
+                var sanmaFlag = false;
                 arguments ??= Array.Empty<string>();
                 if (arguments.Length >= 1)
                 {
@@ -48,11 +49,15 @@ namespace HarunaChanBot.Services
                     {
                         stampFlag = false;
                     }
+                    else if (arguments[0] == "三麻")
+                    {
+                        sanmaFlag = true;
+                    }
                 }
 
                 var random = DsfmtRandom.Create();
                 var playerData = service.GetPlayerData(message);
-                var deck = Shuffle(CreateDeck(), random);
+                var deck = Shuffle(CreateDeck(sanmaFlag), random);
                 var haipai = TakePai(deck);
 //                haipai = haipai.Select(x => (x & 0x40) != 0 ? (true, (byte)(x & 0x40)) : (false, x)).OrderBy(x => x.Item2).Select(x => (byte)(x.Item1 ? x.Item2 | 0x40 : x.Item2)).ToArray();
                 Array.Sort(haipai);
@@ -98,16 +103,22 @@ namespace HarunaChanBot.Services
         }
 
 
-        private byte[] CreateDeck()
+        private byte[] CreateDeck(bool isSanma)
         {
             var deck = new byte[3 * 9 * 4 + 4 * 4 + 3 * 4];
-            for (int i = 0; i < 3; ++i)
+            var syurui = isSanma ? 2 : 3;
+            var syuruiOffset = isSanma ? 1 : 0;
+            if (isSanma)
+            {
+                deck = new byte[8 + 2 * 9 * 4 + 4 * 4 + 3 * 4];
+            }
+            for (int i = 0; i < syurui; ++i)
             {
                 for (int j = 0; j < 9; ++j)
                 {
                     for (int k = 0; k < 4; ++k)
                     {
-                        var cat = (i & 3) << 4 | ((j == 4 && k == 0) ? 0x40 : 0x00);
+                        var cat = ((i + syuruiOffset) & 3) << 4 | ((j == 4 && k == 0) ? 0x40 : 0x00);
                         var num = (j + 1) & 0x0F;
                         deck[i * 36 + j * 4 + k] = (byte)(cat | num);
                     }
@@ -115,7 +126,21 @@ namespace HarunaChanBot.Services
             }
 
 
-            var offset = 3 * 9 * 4;
+            if (isSanma)
+            {
+                var tmp = syurui * 9 * 4;
+                deck[tmp + 0] = 0x01;
+                deck[tmp + 1] = 0x01;
+                deck[tmp + 2] = 0x01;
+                deck[tmp + 3] = 0x01;
+                deck[tmp + 4] = 0x09;
+                deck[tmp + 5] = 0x09;
+                deck[tmp + 6] = 0x09;
+                deck[tmp + 7] = 0x09;
+            }
+
+
+            var offset = syurui * 9 * 4 + (isSanma ? 8 : 0);
             for (int i = 0; i < 4; ++i)
             {
                 for (int j = 0; j < 4; ++j)
