@@ -82,6 +82,7 @@ namespace HarunaChanBot.Services
         private void ShowSystemInformation(SocketMessage message)
         {
             var powerStatus = System.Windows.Forms.SystemInformation.PowerStatus;
+            var remaining = TimeSpan.FromSeconds(powerStatus.BatteryLifeRemaining);
             var messageText = $@"
 現在稼働中のシステムのステータスを開示します。
 フレーム処理時間：{(Application.Current.FrameNanoTime / 1000000.0).ToString("N3")} ms（{(1.0 / Application.Current.FrameNanoTime * 1000000000.0).ToString("N0")} FPS）
@@ -94,7 +95,8 @@ GCカウント(世代1)：{GC.CollectionCount(1)} 回
 GCカウント(世代2)：{GC.CollectionCount(2)} 回
 電源接続状況：{powerStatus.PowerLineStatus}
 電池充電状態：{powerStatus.BatteryChargeStatus}
-電池充電割合：{(int)(powerStatus.BatteryLifePercent * 100)} %";
+電池充電割合：{(int)(powerStatus.BatteryLifePercent * 100)} %
+電池充電時間：{TimeSpan.FromSeconds(powerStatus.BatteryLifeRemaining)}";
             Application.Current.Post.ReplyMessage(messageText, message);
         }
 
