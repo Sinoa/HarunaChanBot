@@ -69,7 +69,7 @@ namespace HarunaChanBot.Services
 
 
                 var kyoku = random.Next(0, 2) == 0 ? "東" : "南";
-                var number = random.Next(1, 5);
+                var number = random.Next(1, sanmaFlag ? 4 : 5);
                 var roll = random.Next(0, 2) == 0 ? "親" : "子";
                 var doraShowID = deck[deck.Length - 5];
                 var doraShowPai = stampFlag ? ToMahjongStamp(doraShowID) : ToMahjongChara(doraShowID);
