@@ -13,54 +13,46 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-using System;
 using System.IO;
-using HarunaChanBot.Framework;
-using HarunaChanBot.Services;
+using Newtonsoft.Json;
 
 namespace HarunaChanBot
 {
-    internal class ApplicationMain : Application<ApplicationMain>
+    public class ApplicationConfig
     {
-        public ApplicationConfig Config;
+        private FileInfo configFileInfo;
+
+        public string DiscordBotToken { get; set; }
 
 
 
-        [STAThread]
-        private static void Main()
+        public ApplicationConfig(FileInfo configFileInfo)
         {
-            new ApplicationMain().Run();
+            this.configFileInfo = configFileInfo;
         }
 
 
-        private ApplicationMain()
+        public void Load()
         {
-            Config = new ApplicationConfig(new FileInfo("config.json"));
-            Config.Load();
+            configFileInfo.Refresh();
+            if (!configFileInfo.Exists)
+            {
+                DiscordBotToken = null;
+                Save();
+                return;
+            }
+
+
+            var jsonData = File.ReadAllText(configFileInfo.FullName);
+            var loadedObject = JsonConvert.DeserializeObject<ApplicationConfig>(jsonData);
+            DiscordBotToken = loadedObject.DiscordBotToken;
         }
 
 
-        protected override string GetBotToken()
+        public void Save()
         {
-            var token = Config.DiscordBotToken;
-            return token;
-        }
-
-
-        protected override void InitializeService()
-        {
-        }
-
-
-        protected override void OnLoggedIn()
-        {
-            Console.WriteLine("Completed Discord login.");
-        }
-
-
-        protected override void OnLoggedOut()
-        {
-            Console.WriteLine("Completed Discord logout.");
+            var jsonData = JsonConvert.SerializeObject(this);
+            File.WriteAllText(configFileInfo.FullName, jsonData);
         }
     }
 }
