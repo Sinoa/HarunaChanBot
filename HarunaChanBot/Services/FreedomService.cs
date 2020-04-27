@@ -173,6 +173,14 @@ namespace HarunaChanBot.Services
             }
 
 
+
+            if (freedomData.ReactiveMessageList.Contains(arguments[0]))
+            {
+                ApplicationMain.Current.Post.SendMessage($"this message exists...", message.Channel);
+                return;
+            }
+
+
             freedomData.ReactiveMessageList.Add(arguments[0]);
             ApplicationMain.Current.Post.SendMessage("Set completed...", message.Channel);
         }
