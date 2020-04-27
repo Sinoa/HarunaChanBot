@@ -30,6 +30,7 @@ namespace HarunaChanBot.Framework
         private readonly List<SocketMessage> receivedMessageList;
         private readonly List<DiscordMessageObject> transmissionMessageList;
         private readonly List<ApplicationService> serviceList;
+        private readonly List<SocketGuild> guildList;
         private SynchronizationContext synchronizationContext;
 
 
@@ -67,6 +68,7 @@ namespace HarunaChanBot.Framework
 
             receivedMessageList = new List<SocketMessage>();
             transmissionMessageList = new List<DiscordMessageObject>();
+            guildList = new List<SocketGuild>();
             Post = new DiscordMessagePost(receivedMessageList.AsReadOnly(), transmissionMessageList);
 
 
@@ -131,19 +133,26 @@ namespace HarunaChanBot.Framework
 
         private void OnJoinGuild_Core(SocketGuild guild)
         {
+            guildList.Add(guild);
             OnJoinGuild(guild);
         }
 
 
         private void OnLeaveGuild_Core(SocketGuild guild)
         {
+            guildList.RemoveAll(x => x.Id == guild.Id);
             OnLeaveGuild(guild);
         }
 
 
         private void OnGuildAvailable_Core(SocketGuild guild)
         {
+            guildList.Add(guild);
             OnGuildAvailable(guild);
+            foreach (var service in serviceList)
+            {
+                service.OnGuildAvailable(guild);
+            }
         }
 
 
@@ -220,6 +229,39 @@ namespace HarunaChanBot.Framework
         protected virtual ulong GetSupervisorID()
         {
             return 0;
+        }
+
+
+        public SocketGuild GetGuild(ulong id)
+        {
+            foreach (var guild in guildList)
+            {
+                if (guild.Id == id)
+                {
+                    return guild;
+                }
+            }
+
+
+            return null;
+        }
+
+
+        public SocketTextChannel GetTextChannel(ulong id)
+        {
+            foreach (var guild in guildList)
+            {
+                foreach (var textChannel in guild.TextChannels)
+                {
+                    if (textChannel.Id == id)
+                    {
+                        return textChannel;
+                    }
+                }
+            }
+
+
+            return null;
         }
 
 

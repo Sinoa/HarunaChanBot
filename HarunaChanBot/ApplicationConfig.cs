@@ -23,6 +23,7 @@ namespace HarunaChanBot
         private FileInfo configFileInfo;
 
         public string DiscordBotToken { get; set; }
+        public ulong DiscordBotID { get; set; }
 
 
 
@@ -46,6 +47,7 @@ namespace HarunaChanBot
             var jsonData = File.ReadAllText(configFileInfo.FullName);
             var loadedObject = JsonConvert.DeserializeObject<ApplicationConfig>(jsonData);
             DiscordBotToken = loadedObject.DiscordBotToken;
+            DiscordBotID = loadedObject.DiscordBotID;
         }
 
 
