@@ -15,14 +15,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using HarunaChanBot.Framework;
-using HarunaChanBot.Utils;
 
 namespace HarunaChanBot.Services
 {
     public class AmazonUrlConvertService : ApplicationService
     {
         private static readonly HashSet<string> CommandHash = new HashSet<string>() { "AmazonURLを変換して", "アマゾンURLを変換して" };
+        private static readonly Regex regex = new Regex("https?://[\\w!?/\\+\\-_~=;\\.,*&@#$%\\(\\)\'\\[\\]]+");
 
 
 
@@ -30,21 +31,8 @@ namespace HarunaChanBot.Services
         {
             foreach (var message in Application.Current.Post.ReceivedMessageList)
             {
-                if (!KaiwaParser.ParseMessageCommand(message.Content, out var command, out var arguments))
+                if (!regex.IsMatch(message.Content))
                 {
-                    continue;
-                }
-
-
-                if (!CommandHash.Contains(command))
-                {
-                    continue;
-                }
-
-
-                if (arguments != null && arguments.Length < 1)
-                {
-                    Application.Current.Post.ReplyMessage("どのAmazonURLを変換すればいいの？", message);
                     continue;
                 }
 
@@ -52,18 +40,16 @@ namespace HarunaChanBot.Services
                 var url = default(Uri);
                 try
                 {
-                    url = new Uri(arguments[0]);
+                    url = new Uri(message.Content);
                 }
                 catch (UriFormatException)
                 {
-                    Application.Current.Post.ReplyMessage("うーん、教えてもらったURLはちゃんとした形式じゃないみたいだよ", message);
                     continue;
                 }
 
 
                 if (url.Host != "www.amazon.co.jp")
                 {
-                    Application.Current.Post.ReplyMessage("もしかして、AmazonのURLじゃなかったりする？陽菜、わかるURLはAmazonだけだよ", message);
                     continue;
                 }
 
@@ -95,11 +81,11 @@ namespace HarunaChanBot.Services
 
                 if (productCode == null)
                 {
-                    Application.Current.Post.ReplyMessage("ごめんなさい、商品コードを見つけられなかったから、変換出来なかったの。", message);
                     continue;
                 }
 
 
+                message.DeleteAsync();
                 Application.Current.Post.ReplyMessage($"https://www.amazon.co.jp/dp/{productCode}", message);
             }
         }
