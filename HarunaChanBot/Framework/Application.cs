@@ -24,7 +24,7 @@ using Discord.WebSocket;
 
 namespace HarunaChanBot.Framework
 {
-    public abstract class Application
+    public abstract class Application<T> where T : Application<T>
     {
         private readonly DiscordSocketClient client;
         private readonly List<SocketMessage> receivedMessageList;
@@ -34,7 +34,7 @@ namespace HarunaChanBot.Framework
 
 
 
-        public static Application Current { get; private set; }
+        public static T Current { get; private set; }
 
 
         public bool Running { get; private set; }
@@ -52,7 +52,7 @@ namespace HarunaChanBot.Framework
 
         public Application()
         {
-            Current = this;
+            Current = (T)this;
             SupervisorID = GetSupervisorID();
 
 
@@ -230,11 +230,11 @@ namespace HarunaChanBot.Framework
         }
 
 
-        public T GetService<T>() where T : ApplicationService
+        public TService GetService<TService>() where TService : ApplicationService
         {
             foreach (var service in serviceList)
             {
-                if (service is T) return (T)service;
+                if (service is TService) return (TService)service;
             }
 
 

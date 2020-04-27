@@ -19,7 +19,7 @@ using HarunaChanBot.Services;
 
 namespace HarunaChanBot
 {
-    internal class ApplicationMain : Application
+    internal class ApplicationMain : Application<ApplicationMain>
     {
         [STAThread]
         private static void Main()

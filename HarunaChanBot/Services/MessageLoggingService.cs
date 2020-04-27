@@ -45,7 +45,7 @@ namespace HarunaChanBot.Services
 
         protected internal override void Update()
         {
-            foreach (var message in Application.Current.Post.ReceivedMessageList)
+            foreach (var message in ApplicationMain.Current.Post.ReceivedMessageList)
             {
                 dirty = true;
                 AddLog(message);

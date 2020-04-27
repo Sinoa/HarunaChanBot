@@ -28,8 +28,8 @@ namespace HarunaChanBot.Services
     {
         protected internal override void Update()
         {
-            var service = Application.Current.GetService<HarunaChanQuestService>();
-            foreach (var message in Application.Current.Post.ReceivedMessageList)
+            var service = ApplicationMain.Current.GetService<HarunaChanQuestService>();
+            foreach (var message in ApplicationMain.Current.Post.ReceivedMessageList)
             {
                 if (message.Author.IsBot)
                 {
@@ -75,7 +75,7 @@ namespace HarunaChanBot.Services
                 var doraShowPai = stampFlag ? ToMahjongStamp(doraShowID) : ToMahjongChara(doraShowID);
                 var tumoPaiID = TakeTumo(deck);
                 var tumoPai = stampFlag ? ToMahjongStamp(tumoPaiID) : ToMahjongChara(tumoPaiID);
-                Application.Current.Post.ReplyMessage($"今回の配牌はこれだよ！\n{kyoku}{number}局 {roll}\nドラ表示牌：{doraShowPai}\n{buffer}　ツモ：{tumoPai}", message, message.Channel, playerData.GetMentionSuffixText());
+                ApplicationMain.Current.Post.ReplyMessage($"今回の配牌はこれだよ！\n{kyoku}{number}局 {roll}\nドラ表示牌：{doraShowPai}\n{buffer}　ツモ：{tumoPai}", message, message.Channel, playerData.GetMentionSuffixText());
             }
         }
 
