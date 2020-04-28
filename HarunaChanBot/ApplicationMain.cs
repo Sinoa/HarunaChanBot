@@ -33,17 +33,28 @@ namespace HarunaChanBot
         }
 
 
-        private ApplicationMain()
+        protected override void Startup()
         {
             Config = new ApplicationConfig(new FileInfo("config.json"));
             Config.Load();
         }
 
 
+        protected override void Terminate()
+        {
+            Config.Save();
+        }
+
+
         protected override string GetBotToken()
         {
-            var token = Config.DiscordBotToken;
-            return token;
+            return Config.DiscordBotToken; ;
+        }
+
+
+        protected override ulong GetSupervisorID()
+        {
+            return Config.SupervisorUserID;
         }
 
 
@@ -61,7 +72,6 @@ namespace HarunaChanBot
 
         protected override void OnLoggedOut()
         {
-            Config.Save();
             Console.WriteLine("Completed Discord logout.");
         }
     }

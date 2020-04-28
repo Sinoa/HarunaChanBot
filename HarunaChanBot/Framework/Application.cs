@@ -54,6 +54,7 @@ namespace HarunaChanBot.Framework
         public Application()
         {
             Current = (T)this;
+            Startup();
             SupervisorID = GetSupervisorID();
 
 
@@ -220,6 +221,16 @@ namespace HarunaChanBot.Framework
         }
 
 
+        protected virtual void Startup()
+        {
+        }
+
+
+        protected virtual void Terminate()
+        {
+        }
+
+
         protected virtual string GetBotToken()
         {
             return null;
@@ -305,6 +316,7 @@ namespace HarunaChanBot.Framework
 
             DoMainLoop(messagePumpHandler);
             ShutdownDiscord(messagePumpHandler);
+            Terminate();
         }
 
 

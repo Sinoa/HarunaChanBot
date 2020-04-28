@@ -13,6 +13,7 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 
@@ -24,6 +25,8 @@ namespace HarunaChanBot
 
         public string DiscordBotToken { get; set; }
         public ulong DiscordBotID { get; set; }
+        public ulong SupervisorUserID { get; set; }
+        public HashSet<ulong> SubSupervisorUserIDList = new HashSet<ulong>();
 
 
 
@@ -48,6 +51,8 @@ namespace HarunaChanBot
             var loadedObject = JsonConvert.DeserializeObject<ApplicationConfig>(jsonData);
             DiscordBotToken = loadedObject.DiscordBotToken;
             DiscordBotID = loadedObject.DiscordBotID;
+            SupervisorUserID = loadedObject.SupervisorUserID;
+            SubSupervisorUserIDList = loadedObject.SubSupervisorUserIDList;
         }
 
 

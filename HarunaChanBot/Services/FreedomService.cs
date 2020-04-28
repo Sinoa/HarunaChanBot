@@ -131,9 +131,18 @@ namespace HarunaChanBot.Services
             var mentionRemovedContent = RemoveMentionContent(message.Content).Trim();
             if (mentionRemovedContent == "Kill")
             {
-                ApplicationMain.Current.Post.SendMessage("Exit...", message.Channel);
-                ApplicationMain.Current.Quit();
-                return;
+                var isSupervisor = message.Author.Id == ApplicationMain.Current.Config.SupervisorUserID;
+                var isSubSupervisor = ApplicationMain.Current.Config.SubSupervisorUserIDList.Contains(message.Author.Id);
+                if (!(isSupervisor || isSubSupervisor))
+                {
+                    ApplicationMain.Current.Post.SendMessage("only supervisor or sub supervisor can control this command.", message.Channel);
+                }
+                else
+                {
+                    ApplicationMain.Current.Post.SendMessage("Exit...", message.Channel);
+                    ApplicationMain.Current.Quit();
+                    return;
+                }
             }
 
 
@@ -160,12 +169,79 @@ namespace HarunaChanBot.Services
                 case "時報の登録": SetTimeSignalMessage(message, arguments); return;
                 case "反応するスタンプの登録": AddStamp(message, arguments); return;
                 case "反応するメッセージの登録": AddReactiveMessage(message, arguments); return;
+                case "副管理者の登録": AddSubSupervisorUserID(message, arguments); return;
+                case "副管理者の解除": RemoveSubSupervisorUserID(message, arguments); return;
             }
+        }
+
+
+        private void RemoveSubSupervisorUserID(SocketMessage message, string[] arguments)
+        {
+            if (message.Author.Id != ApplicationMain.Current.Config.SupervisorUserID)
+            {
+                ApplicationMain.Current.Post.SendMessage("only supervisor can control this command.", message.Channel);
+                return;
+            }
+
+
+            if (arguments.Length < 1)
+            {
+                ApplicationMain.Current.Post.SendMessage($"argument error...", message.Channel);
+                return;
+            }
+
+
+            if (!ulong.TryParse(arguments[0], out var subSupervisorUserID))
+            {
+                ApplicationMain.Current.Post.SendMessage($"argument error...", message.Channel);
+                return;
+            }
+
+
+            ApplicationMain.Current.Config.SubSupervisorUserIDList.Remove(subSupervisorUserID);
+            ApplicationMain.Current.Post.SendMessage("Remove completed...", message.Channel);
+        }
+
+
+        private void AddSubSupervisorUserID(SocketMessage message, string[] arguments)
+        {
+            if (message.Author.Id != ApplicationMain.Current.Config.SupervisorUserID)
+            {
+                ApplicationMain.Current.Post.SendMessage("only supervisor can control this command.", message.Channel);
+                return;
+            }
+
+
+            if (arguments.Length < 1)
+            {
+                ApplicationMain.Current.Post.SendMessage($"argument error...", message.Channel);
+                return;
+            }
+
+
+            if (!ulong.TryParse(arguments[0], out var subSupervisorUserID))
+            {
+                ApplicationMain.Current.Post.SendMessage($"argument error...", message.Channel);
+                return;
+            }
+
+
+            ApplicationMain.Current.Config.SubSupervisorUserIDList.Add(subSupervisorUserID);
+            ApplicationMain.Current.Post.SendMessage("Add completed...", message.Channel);
         }
 
 
         private void AddReactiveMessage(SocketMessage message, string[] arguments)
         {
+            var isSupervisor = message.Author.Id == ApplicationMain.Current.Config.SupervisorUserID;
+            var isSubSupervisor = ApplicationMain.Current.Config.SubSupervisorUserIDList.Contains(message.Author.Id);
+            if (!(isSupervisor || isSubSupervisor))
+            {
+                ApplicationMain.Current.Post.SendMessage("only supervisor or sub supervisor can control this command.", message.Channel);
+                return;
+            }
+
+
             if (arguments.Length < 1)
             {
                 ApplicationMain.Current.Post.SendMessage($"argument error...", message.Channel);
@@ -188,6 +264,15 @@ namespace HarunaChanBot.Services
 
         private void AddStamp(SocketMessage message, string[] arguments)
         {
+            var isSupervisor = message.Author.Id == ApplicationMain.Current.Config.SupervisorUserID;
+            var isSubSupervisor = ApplicationMain.Current.Config.SubSupervisorUserIDList.Contains(message.Author.Id);
+            if (!(isSupervisor || isSubSupervisor))
+            {
+                ApplicationMain.Current.Post.SendMessage("only supervisor or sub supervisor can control this command.", message.Channel);
+                return;
+            }
+
+
             if (arguments.Length < 1)
             {
                 ApplicationMain.Current.Post.SendMessage($"argument error...", message.Channel);
@@ -217,6 +302,15 @@ namespace HarunaChanBot.Services
 
         private void SetTimeSignalMessage(SocketMessage message, string[] arguments)
         {
+            var isSupervisor = message.Author.Id == ApplicationMain.Current.Config.SupervisorUserID;
+            var isSubSupervisor = ApplicationMain.Current.Config.SubSupervisorUserIDList.Contains(message.Author.Id);
+            if (!(isSupervisor || isSubSupervisor))
+            {
+                ApplicationMain.Current.Post.SendMessage("only supervisor or sub supervisor can control this command.", message.Channel);
+                return;
+            }
+
+
             if (arguments.Length < 2)
             {
                 ApplicationMain.Current.Post.SendMessage("Argument error....", message);
@@ -244,6 +338,15 @@ namespace HarunaChanBot.Services
 
         private void SetTimeSignalChannel(SocketMessage message, string[] arguments)
         {
+            var isSupervisor = message.Author.Id == ApplicationMain.Current.Config.SupervisorUserID;
+            var isSubSupervisor = ApplicationMain.Current.Config.SubSupervisorUserIDList.Contains(message.Author.Id);
+            if (!(isSupervisor || isSubSupervisor))
+            {
+                ApplicationMain.Current.Post.SendMessage("only supervisor or sub supervisor can control this command.", message.Channel);
+                return;
+            }
+
+
             freedomData.TimeSignalTargetChannelID = message.Channel.Id;
             timeSignalTargetChannel = message.Channel as SocketTextChannel;
             ApplicationMain.Current.Post.SendMessage("Set completed...", timeSignalTargetChannel);
@@ -252,6 +355,15 @@ namespace HarunaChanBot.Services
 
         private void AddSchedule(SocketMessage message, string[] arguments)
         {
+            var isSupervisor = message.Author.Id == ApplicationMain.Current.Config.SupervisorUserID;
+            var isSubSupervisor = ApplicationMain.Current.Config.SubSupervisorUserIDList.Contains(message.Author.Id);
+            if (!(isSupervisor || isSubSupervisor))
+            {
+                ApplicationMain.Current.Post.SendMessage("only supervisor or sub supervisor can control this command.", message.Channel);
+                return;
+            }
+
+
             if (arguments.Length < 4)
             {
                 ApplicationMain.Current.Post.SendMessage("Argument error...", message.Channel);
