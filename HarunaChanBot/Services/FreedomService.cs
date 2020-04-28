@@ -453,7 +453,7 @@ namespace HarunaChanBot.Services
                 newData.TimeSignalMessageTable = new Dictionary<int, List<string>>();
                 newData.StampSensorList = new HashSet<ulong>();
                 newData.ReactiveMessageList = new List<string>();
-                for (int i = 1; i < 25; ++i)
+                for (int i = 0; i < 25; ++i)
                 {
                     newData.TimeSignalMessageTable[i] = new List<string>();
                 }
