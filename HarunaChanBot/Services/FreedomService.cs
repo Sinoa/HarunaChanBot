@@ -106,6 +106,10 @@ namespace HarunaChanBot.Services
 
 
             nextTimeSignalTime = nextTimeSignalTime.AddHours(1.0);
+            nextTimeSignalTime = new DateTimeOffset(
+                nextTimeSignalTime.Year, nextTimeSignalTime.Month, nextTimeSignalTime.Day,
+                nextTimeSignalTime.Hour, 0, 0,
+                TimeSpan.FromHours(9.0));
         }
 
 
@@ -171,7 +175,24 @@ namespace HarunaChanBot.Services
                 case "反応するメッセージの登録": AddReactiveMessage(message, arguments); return;
                 case "副管理者の登録": AddSubSupervisorUserID(message, arguments); return;
                 case "副管理者の解除": RemoveSubSupervisorUserID(message, arguments); return;
+                case "記憶して": DoConfigSave(message, arguments); return;
             }
+        }
+
+
+        private void DoConfigSave(SocketMessage message, string[] arguments)
+        {
+            var isSupervisor = message.Author.Id == ApplicationMain.Current.Config.SupervisorUserID;
+            var isSubSupervisor = ApplicationMain.Current.Config.SubSupervisorUserIDList.Contains(message.Author.Id);
+            if (!(isSupervisor || isSubSupervisor))
+            {
+                ApplicationMain.Current.Post.SendMessage("only supervisor or sub supervisor can control this command.", message.Channel);
+                return;
+            }
+
+
+            freedomData.Save();
+            ApplicationMain.Current.Post.SendMessage("Save completed...", message.Channel);
         }
 
 
