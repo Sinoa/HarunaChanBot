@@ -41,6 +41,7 @@ namespace HarunaChanBot.Services
         public FreedomService()
         {
             freedomData = FreedomData.Load();
+            freedomData.VerifyAndRepair();
 
 
             var tmp = DateTimeOffset.Now.AddHours(1.0);
@@ -101,8 +102,19 @@ namespace HarunaChanBot.Services
             }
 
 
+            var mentionMessageBuffer = new StringBuilder();
+            foreach (var targetUserID in freedomData.TimeSignalNotifyTargetUserIDTable[nextTimeSignalTime.Hour])
+            {
+                mentionMessageBuffer.Append($"<@{targetUserID}>");
+            }
+            if (mentionMessageBuffer.Length > 0)
+            {
+                mentionMessageBuffer.Append("\n");
+            }
+
+
             var timeSignalMessage = freedomData.GetTimeSignalMessage(random, nextTimeSignalTime.Hour);
-            ApplicationMain.Current.Post.SendMessage($"{nextTimeSignalTime.Hour}時です。\n{timeSignalMessage}", timeSignalTargetChannel);
+            ApplicationMain.Current.Post.SendMessage($"{mentionMessageBuffer}{nextTimeSignalTime.Hour}時です。\n{timeSignalMessage}", timeSignalTargetChannel);
 
 
             nextTimeSignalTime = nextTimeSignalTime.AddHours(1.0);
@@ -110,6 +122,9 @@ namespace HarunaChanBot.Services
                 nextTimeSignalTime.Year, nextTimeSignalTime.Month, nextTimeSignalTime.Day,
                 nextTimeSignalTime.Hour, 0, 0,
                 TimeSpan.FromHours(9.0));
+
+
+            freedomData.Save();
         }
 
 
@@ -176,7 +191,75 @@ namespace HarunaChanBot.Services
                 case "副管理者の登録": AddSubSupervisorUserID(message, arguments); return;
                 case "副管理者の解除": RemoveSubSupervisorUserID(message, arguments); return;
                 case "記憶して": DoConfigSave(message, arguments); return;
+                case "時報の通知をお願い": AddTimeSignalNotify(message, arguments); return;
+                case "時報の通知を止めて": StopTimeSignalNotify(message, arguments); return;
             }
+        }
+
+
+        private void AddTimeSignalNotify(SocketMessage message, string[] arguments)
+        {
+            if (arguments.Length >= 1)
+            {
+                if (!int.TryParse(arguments[0], out var time))
+                {
+                    ApplicationMain.Current.Post.SendMessage($"argument error...", message.Channel);
+                    return;
+                }
+
+
+                if (time < 0 || time > 24)
+                {
+                    ApplicationMain.Current.Post.SendMessage($"argument error...", message.Channel);
+                    return;
+                }
+
+
+                freedomData.TimeSignalNotifyTargetUserIDTable[time].Add(message.Author.Id);
+            }
+            else
+            {
+                for (int i = 0; i < 25; ++i)
+                {
+                    freedomData.TimeSignalNotifyTargetUserIDTable[i].Add(message.Author.Id);
+                }
+            }
+
+
+            ApplicationMain.Current.Post.SendMessage("Set completed...", message.Channel);
+        }
+
+
+        private void StopTimeSignalNotify(SocketMessage message, string[] arguments)
+        {
+            if (arguments.Length >= 1)
+            {
+                if (!int.TryParse(arguments[0], out var time))
+                {
+                    ApplicationMain.Current.Post.SendMessage($"argument error...", message.Channel);
+                    return;
+                }
+
+
+                if (time < 0 || time > 24)
+                {
+                    ApplicationMain.Current.Post.SendMessage($"argument error...", message.Channel);
+                    return;
+                }
+
+
+                freedomData.TimeSignalNotifyTargetUserIDTable[time].Remove(message.Author.Id);
+            }
+            else
+            {
+                for (int i = 0; i < 25; ++i)
+                {
+                    freedomData.TimeSignalNotifyTargetUserIDTable[i].Remove(message.Author.Id);
+                }
+            }
+
+
+            ApplicationMain.Current.Post.SendMessage("Remove completed...", message.Channel);
         }
 
 
@@ -462,6 +545,7 @@ namespace HarunaChanBot.Services
         public Dictionary<int, List<string>> TimeSignalMessageTable;
         public HashSet<ulong> StampSensorList;
         public List<string> ReactiveMessageList;
+        public Dictionary<int, HashSet<ulong>> TimeSignalNotifyTargetUserIDTable;
 
 
 
@@ -474,9 +558,11 @@ namespace HarunaChanBot.Services
                 newData.TimeSignalMessageTable = new Dictionary<int, List<string>>();
                 newData.StampSensorList = new HashSet<ulong>();
                 newData.ReactiveMessageList = new List<string>();
+                newData.TimeSignalNotifyTargetUserIDTable = new Dictionary<int, HashSet<ulong>>();
                 for (int i = 0; i < 25; ++i)
                 {
                     newData.TimeSignalMessageTable[i] = new List<string>();
+                    newData.TimeSignalNotifyTargetUserIDTable[i] = new HashSet<ulong>();
                 }
                 return newData;
             }
@@ -484,6 +570,29 @@ namespace HarunaChanBot.Services
 
             var jsonData = File.ReadAllText("freedom.json");
             return JsonConvert.DeserializeObject<FreedomData>(jsonData);
+        }
+
+
+        public void VerifyAndRepair()
+        {
+            JobList ??= new List<JobData>();
+            TimeSignalMessageTable ??= new Dictionary<int, List<string>>();
+            StampSensorList ??= new HashSet<ulong>();
+            ReactiveMessageList ??= new List<string>();
+            TimeSignalNotifyTargetUserIDTable ??= new Dictionary<int, HashSet<ulong>>();
+            for (int i = 0; i < 25; ++i)
+            {
+                if (!TimeSignalMessageTable.ContainsKey(i))
+                {
+                    TimeSignalMessageTable[i] = new List<string>();
+                }
+
+
+                if (!TimeSignalNotifyTargetUserIDTable.ContainsKey(i))
+                {
+                    TimeSignalNotifyTargetUserIDTable[i] = new HashSet<ulong>();
+                }
+            }
         }
 
 
