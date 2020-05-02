@@ -24,7 +24,16 @@ namespace HarunaChanBot.Services
     public class SystemControlService : ApplicationService
     {
         private double maxFrameNanoTime;
+        private System.Windows.Forms.PowerLineStatus lastPowerLineStatus;
+        private ISocketMessageChannel channel;
+        private bool notifyed;
 
+
+
+        public SystemControlService()
+        {
+            lastPowerLineStatus = System.Windows.Forms.SystemInformation.PowerStatus.PowerLineStatus;
+        }
 
 
         protected internal override void Update()
@@ -52,11 +61,76 @@ namespace HarunaChanBot.Services
                         break;
 
 
+                    case "システム通知はここにお願い":
+                        SetChannel(message, playerData);
+                        break;
+
+
                     case "家に帰って":
                         Logout(message, playerData);
                         break;
                 }
             }
+
+
+            UpdatePowerStatus();
+        }
+
+
+        private void UpdatePowerStatus()
+        {
+            if (channel == null)
+            {
+                return;
+            }
+
+
+            var currentPowerLineStatus = System.Windows.Forms.SystemInformation.PowerStatus.PowerLineStatus;
+            if (lastPowerLineStatus != currentPowerLineStatus)
+            {
+                lastPowerLineStatus = currentPowerLineStatus;
+                switch (lastPowerLineStatus)
+                {
+                    case System.Windows.Forms.PowerLineStatus.Unknown:
+                    case System.Windows.Forms.PowerLineStatus.Online:
+                        Application.Current.Post.SendMessage($"<@{Application.Current.SupervisorID}>ご飯が出来たよ！", channel);
+                        break;
+
+
+                    default:
+                    case System.Windows.Forms.PowerLineStatus.Offline:
+                        Application.Current.Post.SendMessage($"<@{Application.Current.SupervisorID}>ご飯がもう無いよ！", channel);
+                        break;
+                }
+
+
+                notifyed = false;
+            }
+
+
+            if (currentPowerLineStatus == System.Windows.Forms.PowerLineStatus.Offline)
+            {
+                var currentPowerLevel = System.Windows.Forms.SystemInformation.PowerStatus.BatteryLifePercent;
+                if (notifyed == false && currentPowerLevel <= 0.15f)
+                {
+                    Application.Current.Post.SendMessage($"<@{Application.Current.SupervisorID}>うぅ。。。お腹すいたぁ、陽菜ご飯を食べたいよ～", channel);
+                    notifyed = true;
+                }
+            }
+        }
+
+
+        private void SetChannel(SocketMessage message, PlayerGameData playerData)
+        {
+            if (message.Author.Id != Application.Current.SupervisorID)
+            {
+                Application.Current.Post.ReplyMessage("ごめんなさい、知らない人の言葉を信じちゃいけないってお母さんから言われているの。", message, message.Channel, playerData.GetMentionSuffixText());
+                return;
+            }
+
+
+            channel = message.Channel;
+            Application.Current.Post.ReplyMessage($"何かあったらここに連絡するね！", message, message.Channel, playerData.GetMentionSuffixText());
         }
 
 
