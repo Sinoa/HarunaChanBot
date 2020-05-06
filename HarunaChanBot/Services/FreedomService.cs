@@ -188,12 +188,74 @@ namespace HarunaChanBot.Services
                 case "時報の登録": SetTimeSignalMessage(message, arguments); return;
                 case "反応するスタンプの登録": AddStamp(message, arguments); return;
                 case "反応するメッセージの登録": AddReactiveMessage(message, arguments); return;
+                case "反応するメッセージの一覧": ShowReactiveMessage(message, arguments); return;
+                case "反応するメッセージの削除": RemoveReactiveMessage(message, arguments); return;
                 case "副管理者の登録": AddSubSupervisorUserID(message, arguments); return;
                 case "副管理者の解除": RemoveSubSupervisorUserID(message, arguments); return;
                 case "記憶して": DoConfigSave(message, arguments); return;
                 case "時報の通知をお願い": AddTimeSignalNotify(message, arguments); return;
                 case "時報の通知を止めて": StopTimeSignalNotify(message, arguments); return;
             }
+        }
+
+
+        private void RemoveReactiveMessage(SocketMessage message, string[] arguments)
+        {
+            var isSupervisor = message.Author.Id == ApplicationMain.Current.Config.SupervisorUserID;
+            var isSubSupervisor = ApplicationMain.Current.Config.SubSupervisorUserIDList.Contains(message.Author.Id);
+            if (!(isSupervisor || isSubSupervisor))
+            {
+                ApplicationMain.Current.Post.SendMessage("only supervisor or sub supervisor can control this command.", message.Channel);
+                return;
+            }
+
+
+            if (arguments.Length < 1)
+            {
+                ApplicationMain.Current.Post.SendMessage($"argument error...", message.Channel);
+                return;
+            }
+
+
+            if (!int.TryParse(arguments[0], out var id))
+            {
+                ApplicationMain.Current.Post.SendMessage("id out of range error....", message);
+                return;
+            }
+
+
+            if (id < 0 || id >= freedomData.ReactiveMessageList.Count)
+            {
+                ApplicationMain.Current.Post.SendMessage("id out of range error....", message);
+                return;
+            }
+
+
+            freedomData.ReactiveMessageList.RemoveAt(id);
+            ApplicationMain.Current.Post.SendMessage("Remove completed...", message);
+        }
+
+
+        private void ShowReactiveMessage(SocketMessage message, string[] arguments)
+        {
+            var isSupervisor = message.Author.Id == ApplicationMain.Current.Config.SupervisorUserID;
+            var isSubSupervisor = ApplicationMain.Current.Config.SubSupervisorUserIDList.Contains(message.Author.Id);
+            if (!(isSupervisor || isSubSupervisor))
+            {
+                ApplicationMain.Current.Post.SendMessage("only supervisor or sub supervisor can control this command.", message.Channel);
+                return;
+            }
+
+
+            var list = freedomData.ReactiveMessageList;
+            var buffer = new StringBuilder();
+            for (int i = 0; i < list.Count; ++i)
+            {
+                buffer.Append($"[{i}]{list[i]}\n");
+            }
+
+
+            ApplicationMain.Current.Post.SendMessage($"{buffer}", message.Channel);
         }
 
 
