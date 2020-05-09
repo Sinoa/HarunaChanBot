@@ -29,7 +29,7 @@ namespace HarunaChanBot.Services
 
         protected internal override void Update()
         {
-            foreach (var message in Application.Current.Post.ReceivedMessageList)
+            foreach (var message in ApplicationMain.Current.Post.ReceivedMessageList)
             {
                 if (!regex.IsMatch(message.Content))
                 {
@@ -86,7 +86,7 @@ namespace HarunaChanBot.Services
 
 
                 message.DeleteAsync();
-                Application.Current.Post.ReplyMessage($"https://www.amazon.co.jp/dp/{productCode}", message);
+                ApplicationMain.Current.Post.ReplyMessage($"https://www.amazon.co.jp/dp/{productCode}", message);
             }
         }
     }

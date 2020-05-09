@@ -14,13 +14,18 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System;
+using System.IO;
 using HarunaChanBot.Framework;
 using HarunaChanBot.Services;
 
 namespace HarunaChanBot
 {
-    internal class ApplicationMain : Application
+    internal class ApplicationMain : Application<ApplicationMain>
     {
+        public ApplicationConfig Config;
+
+
+
         [STAThread]
         private static void Main()
         {
@@ -28,29 +33,34 @@ namespace HarunaChanBot
         }
 
 
+        protected override void Startup()
+        {
+            Config = new ApplicationConfig(new FileInfo("config.json"));
+            Config.Load();
+        }
+
+
+        protected override void Terminate()
+        {
+            Config.Save();
+        }
+
+
         protected override string GetBotToken()
         {
-            var token = Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN");
-            return token;
+            return Config.DiscordBotToken; ;
         }
 
 
         protected override ulong GetSupervisorID()
         {
-            var id = ulong.Parse(Environment.GetEnvironmentVariable("DISCORD_BOT_SVID"));
-            return id;
+            return Config.SupervisorUserID;
         }
 
 
         protected override void InitializeService()
         {
-            AddService(new DatabaseService());
-            AddService(new AmazonUrlConvertService());
-            AddService(new HarunaChanQuestService());
-            AddService(new MessageLoggingService());
-            AddService(new SystemControlService());
-            AddService(new KaiwaService());
-            AddService(new HaipaiService());
+            AddService(new FreedomService());
         }
 
 

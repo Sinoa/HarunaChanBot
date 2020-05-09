@@ -40,10 +40,10 @@ namespace HarunaChanBot.Services
 
         protected internal override void Update()
         {
-            var service = Application.Current.GetService<HarunaChanQuestService>();
+            var service = ApplicationMain.Current.GetService<HarunaChanQuestService>();
 
 
-            foreach (var message in Application.Current.Post.ReceivedMessageList)
+            foreach (var message in ApplicationMain.Current.Post.ReceivedMessageList)
             {
                 var playerData = service.GetPlayerData(message);
 
@@ -52,7 +52,7 @@ namespace HarunaChanBot.Services
                 {
                     if (kaiwaData.IsTadaimaMatch(message.Content))
                     {
-                        Application.Current.Post.ReplyMessage($"{kaiwaData.GetOkaeriMessage()}", message, message.Channel, playerData.GetMentionSuffixText());
+                        ApplicationMain.Current.Post.ReplyMessage($"{kaiwaData.GetOkaeriMessage()}", message, message.Channel, playerData.GetMentionSuffixText());
                     }
                 }
 
@@ -142,7 +142,7 @@ namespace HarunaChanBot.Services
         {
             if (kaiwaData.TadaimaPatterns == null || kaiwaData.TadaimaPatterns.Count == 0)
             {
-                Application.Current.Post.ReplyMessage("ごめんなさい、ただいまリストが空っぽなんだ。。。", message, message.Channel, playerData.GetMentionSuffixText());
+                ApplicationMain.Current.Post.ReplyMessage("ごめんなさい、ただいまリストが空っぽなんだ。。。", message, message.Channel, playerData.GetMentionSuffixText());
                 return;
             }
 
@@ -154,7 +154,7 @@ namespace HarunaChanBot.Services
             }
 
 
-            Application.Current.Post.ReplyMessage(buffer.ToString(), message, message.Channel, playerData.GetMentionSuffixText());
+            ApplicationMain.Current.Post.ReplyMessage(buffer.ToString(), message, message.Channel, playerData.GetMentionSuffixText());
         }
 
 
@@ -162,7 +162,7 @@ namespace HarunaChanBot.Services
         {
             if (kaiwaData.OkaeriMessage == null || kaiwaData.OkaeriMessage.Count == 0)
             {
-                Application.Current.Post.ReplyMessage("ごめんなさい、おかえりリストが空っぽなんだ。。。", message, message.Channel, playerData.GetMentionSuffixText());
+                ApplicationMain.Current.Post.ReplyMessage("ごめんなさい、おかえりリストが空っぽなんだ。。。", message, message.Channel, playerData.GetMentionSuffixText());
                 return;
             }
 
@@ -174,22 +174,22 @@ namespace HarunaChanBot.Services
             }
 
 
-            Application.Current.Post.ReplyMessage(buffer.ToString(), message, message.Channel, playerData.GetMentionSuffixText());
+            ApplicationMain.Current.Post.ReplyMessage(buffer.ToString(), message, message.Channel, playerData.GetMentionSuffixText());
         }
 
 
         private void SetTadaimaMessage(SocketMessage message, PlayerGameData playerData, string[] arguments)
         {
-            if (message.Author.Id != Application.Current.SupervisorID)
+            if (message.Author.Id != ApplicationMain.Current.SupervisorID)
             {
-                Application.Current.Post.ReplyMessage("ごめんなさい、陽菜、お母さんにお父さんからの言葉だけしか覚えちゃ駄目って言われてるの。", message, message.Channel, playerData.GetMentionSuffixText());
+                ApplicationMain.Current.Post.ReplyMessage("ごめんなさい、陽菜、お母さんにお父さんからの言葉だけしか覚えちゃ駄目って言われてるの。", message, message.Channel, playerData.GetMentionSuffixText());
                 return;
             }
 
 
             if (arguments == null || arguments.Length < 1)
             {
-                Application.Current.Post.ReplyMessage("何のただいまの言葉を覚えればいいの？", message, message.Channel, playerData.GetMentionSuffixText());
+                ApplicationMain.Current.Post.ReplyMessage("何のただいまの言葉を覚えればいいの？", message, message.Channel, playerData.GetMentionSuffixText());
                 return;
             }
 
@@ -198,23 +198,23 @@ namespace HarunaChanBot.Services
             kaiwaData.SetTadaimaPattern(tadaima);
 
 
-            Application.Current.Post.ReplyMessage($"陽菜、'{tadaima}'がただいまの挨拶だっていうのを覚えたよ！", message, message.Channel, playerData.GetMentionSuffixText());
+            ApplicationMain.Current.Post.ReplyMessage($"陽菜、'{tadaima}'がただいまの挨拶だっていうのを覚えたよ！", message, message.Channel, playerData.GetMentionSuffixText());
             SaveKaiwaData();
         }
 
 
         private void SetOkaeriMessage(SocketMessage message, PlayerGameData playerData, string[] arguments)
         {
-            if (message.Author.Id != Application.Current.SupervisorID)
+            if (message.Author.Id != ApplicationMain.Current.SupervisorID)
             {
-                Application.Current.Post.ReplyMessage("ごめんなさい、陽菜、お母さんにお父さんからの言葉だけしか覚えちゃ駄目って言われてるの。", message, message.Channel, playerData.GetMentionSuffixText());
+                ApplicationMain.Current.Post.ReplyMessage("ごめんなさい、陽菜、お母さんにお父さんからの言葉だけしか覚えちゃ駄目って言われてるの。", message, message.Channel, playerData.GetMentionSuffixText());
                 return;
             }
 
 
             if (arguments == null || arguments.Length < 1)
             {
-                Application.Current.Post.ReplyMessage("何のおかえりの言葉を覚えればいいの？", message, message.Channel, playerData.GetMentionSuffixText());
+                ApplicationMain.Current.Post.ReplyMessage("何のおかえりの言葉を覚えればいいの？", message, message.Channel, playerData.GetMentionSuffixText());
                 return;
             }
 
@@ -223,37 +223,37 @@ namespace HarunaChanBot.Services
             kaiwaData.SetOkaeriPattern(tadaima);
 
 
-            Application.Current.Post.ReplyMessage($"陽菜、'{tadaima}'がおかえりの挨拶だっていうのを覚えたよ！", message, message.Channel, playerData.GetMentionSuffixText());
+            ApplicationMain.Current.Post.ReplyMessage($"陽菜、'{tadaima}'がおかえりの挨拶だっていうのを覚えたよ！", message, message.Channel, playerData.GetMentionSuffixText());
             SaveKaiwaData();
         }
 
 
         private void RemoveTadaimaMessage(SocketMessage message, PlayerGameData playerData, string[] arguments)
         {
-            if (message.Author.Id != Application.Current.SupervisorID)
+            if (message.Author.Id != ApplicationMain.Current.SupervisorID)
             {
-                Application.Current.Post.ReplyMessage("ごめんなさい、陽菜、お母さんからお父さん以外の人からその指示を受けちゃ駄目って言われてるの。", message, message.Channel, playerData.GetMentionSuffixText());
+                ApplicationMain.Current.Post.ReplyMessage("ごめんなさい、陽菜、お母さんからお父さん以外の人からその指示を受けちゃ駄目って言われてるの。", message, message.Channel, playerData.GetMentionSuffixText());
                 return;
             }
 
 
             if (arguments == null || arguments.Length < 1)
             {
-                Application.Current.Post.ReplyMessage("何のただいまの言葉を忘れればいいの？", message, message.Channel, playerData.GetMentionSuffixText());
+                ApplicationMain.Current.Post.ReplyMessage("何のただいまの言葉を忘れればいいの？", message, message.Channel, playerData.GetMentionSuffixText());
                 return;
             }
 
 
             if (!int.TryParse(arguments[0], out var index))
             {
-                Application.Current.Post.ReplyMessage("うーん、教えてもらった文字が数字なのかわからないや", message, message.Channel, playerData.GetMentionSuffixText());
+                ApplicationMain.Current.Post.ReplyMessage("うーん、教えてもらった文字が数字なのかわからないや", message, message.Channel, playerData.GetMentionSuffixText());
                 return;
             }
 
 
             if (index < 0 || index >= kaiwaData.TadaimaPatterns.Count)
             {
-                Application.Current.Post.ReplyMessage("教えてくれた番号に言葉がなかったよ？", message, message.Channel, playerData.GetMentionSuffixText());
+                ApplicationMain.Current.Post.ReplyMessage("教えてくれた番号に言葉がなかったよ？", message, message.Channel, playerData.GetMentionSuffixText());
                 return;
             }
 
@@ -266,30 +266,30 @@ namespace HarunaChanBot.Services
 
         private void RemoveOkaeriMessage(SocketMessage message, PlayerGameData playerData, string[] arguments)
         {
-            if (message.Author.Id != Application.Current.SupervisorID)
+            if (message.Author.Id != ApplicationMain.Current.SupervisorID)
             {
-                Application.Current.Post.ReplyMessage("ごめんなさい、陽菜、お母さんからお父さん以外の人からその指示を受けちゃ駄目って言われてるの。", message, message.Channel, playerData.GetMentionSuffixText());
+                ApplicationMain.Current.Post.ReplyMessage("ごめんなさい、陽菜、お母さんからお父さん以外の人からその指示を受けちゃ駄目って言われてるの。", message, message.Channel, playerData.GetMentionSuffixText());
                 return;
             }
 
 
             if (arguments == null || arguments.Length < 1)
             {
-                Application.Current.Post.ReplyMessage("何のただいまの言葉を忘れればいいの？", message, message.Channel, playerData.GetMentionSuffixText());
+                ApplicationMain.Current.Post.ReplyMessage("何のただいまの言葉を忘れればいいの？", message, message.Channel, playerData.GetMentionSuffixText());
                 return;
             }
 
 
             if (!int.TryParse(arguments[0], out var index))
             {
-                Application.Current.Post.ReplyMessage("うーん、教えてもらった文字が数字なのかわからないや", message, message.Channel, playerData.GetMentionSuffixText());
+                ApplicationMain.Current.Post.ReplyMessage("うーん、教えてもらった文字が数字なのかわからないや", message, message.Channel, playerData.GetMentionSuffixText());
                 return;
             }
 
 
             if (index < 0 || index >= kaiwaData.OkaeriMessage.Count)
             {
-                Application.Current.Post.ReplyMessage("教えてくれた番号に言葉がなかったよ？", message, message.Channel, playerData.GetMentionSuffixText());
+                ApplicationMain.Current.Post.ReplyMessage("教えてくれた番号に言葉がなかったよ？", message, message.Channel, playerData.GetMentionSuffixText());
                 return;
             }
 
@@ -316,9 +316,9 @@ namespace HarunaChanBot.Services
 
         private void DynamicLoadKaiwaData(SocketMessage message, PlayerGameData playerData)
         {
-            if (message.Author.Id != Application.Current.SupervisorID)
+            if (message.Author.Id != ApplicationMain.Current.SupervisorID)
             {
-                Application.Current.Post.ReplyMessage("ごめんなさい、知らない人の言葉を信じちゃいけないってお母さんから言われているの。", message, message.Channel, playerData.GetMentionSuffixText());
+                ApplicationMain.Current.Post.ReplyMessage("ごめんなさい、知らない人の言葉を信じちゃいけないってお母さんから言われているの。", message, message.Channel, playerData.GetMentionSuffixText());
                 return;
             }
 
@@ -332,20 +332,20 @@ namespace HarunaChanBot.Services
             buffer.AppendLine($"おかえりの言葉が、{kaiwaData.OkaeriMessage?.Count}件");
             buffer.AppendLine($"ただいまの言葉が、{kaiwaData.TadaimaPatterns?.Count}件");
             buffer.AppendLine($"あったよ！");
-            Application.Current.Post.ReplyMessage(buffer.ToString(), message, message.Channel, playerData.GetMentionSuffixText());
+            ApplicationMain.Current.Post.ReplyMessage(buffer.ToString(), message, message.Channel, playerData.GetMentionSuffixText());
         }
 
 
         private void Oyasumi(SocketMessage message, PlayerGameData playerData)
         {
-            Application.Current.Post.ReplyMessage($"{kaiwaData.GetOyasumiMessage()} また明日ね！", message, message.Channel, playerData.GetMentionSuffixText());
+            ApplicationMain.Current.Post.ReplyMessage($"{kaiwaData.GetOyasumiMessage()} また明日ね！", message, message.Channel, playerData.GetMentionSuffixText());
         }
 
 
         private void Ohayo(SocketMessage message, PlayerGameData playerData)
         {
             var omikuzi = kaiwaData.GetOmikuziData();
-            Application.Current.Post.ReplyMessage($"{kaiwaData.GetOhayoMessage()} 今日の運勢は、、、{omikuzi.ResultMessage}だよ！{omikuzi.PostMessage}", message, message.Channel, playerData.GetMentionSuffixText());
+            ApplicationMain.Current.Post.ReplyMessage($"{kaiwaData.GetOhayoMessage()} 今日の運勢は、、、{omikuzi.ResultMessage}だよ！{omikuzi.PostMessage}", message, message.Channel, playerData.GetMentionSuffixText());
         }
 
 
@@ -353,11 +353,11 @@ namespace HarunaChanBot.Services
         {
             if (arguments == null || arguments.Length < 1)
             {
-                Application.Current.Post.ReplyMessage("陽菜、なんて言えばいいの？", message, message.Channel, playerData.GetMentionSuffixText());
+                ApplicationMain.Current.Post.ReplyMessage("陽菜、なんて言えばいいの？", message, message.Channel, playerData.GetMentionSuffixText());
             }
             else
             {
-                Application.Current.Post.SendMessage(string.Concat(arguments), message);
+                ApplicationMain.Current.Post.SendMessage(string.Concat(arguments), message);
             }
         }
 
@@ -366,11 +366,11 @@ namespace HarunaChanBot.Services
         {
             if (arguments == null || arguments.Length < 1)
             {
-                Application.Current.Post.ReplyMessage("陽菜、なんて返事をすればいいの？", message, message.Channel, playerData.GetMentionSuffixText());
+                ApplicationMain.Current.Post.ReplyMessage("陽菜、なんて返事をすればいいの？", message, message.Channel, playerData.GetMentionSuffixText());
             }
             else
             {
-                Application.Current.Post.ReplyMessage($"うん、いいよ！『{string.Concat(arguments)}』", message, message.Channel, playerData.GetMentionSuffixText());
+                ApplicationMain.Current.Post.ReplyMessage($"うん、いいよ！『{string.Concat(arguments)}』", message, message.Channel, playerData.GetMentionSuffixText());
             }
         }
     }

@@ -89,7 +89,7 @@ namespace HarunaChanBot.Services
 
         protected internal override void Update()
         {
-            foreach (var message in Application.Current.Post.ReceivedMessageList)
+            foreach (var message in ApplicationMain.Current.Post.ReceivedMessageList)
             {
                 ProcessGame(message);
             }
@@ -195,7 +195,7 @@ namespace HarunaChanBot.Services
 
             if (arguments.Length < 1)
             {
-                Application.Current.Post.ReplyMessage(@"
+                ApplicationMain.Current.Post.ReplyMessage(@"
 コマンドの引数が足りないよぉ
 男性なら：男性　か　男　か　0　か　Male
 女性なら：女性　か　女　か　1　か　Female
@@ -207,16 +207,16 @@ namespace HarunaChanBot.Services
             if (maleTextList.Contains(arguments[0]))
             {
                 playerData.Gender = GenderType.Male;
-                Application.Current.Post.ReplyMessage("性別を男性に変えたよ！", message, message.Channel, playerData.GetMentionSuffixText());
+                ApplicationMain.Current.Post.ReplyMessage("性別を男性に変えたよ！", message, message.Channel, playerData.GetMentionSuffixText());
             }
             else if (femaleTextList.Contains(arguments[0]))
             {
                 playerData.Gender = GenderType.Female;
-                Application.Current.Post.ReplyMessage("性別を女性に変えたよ！", message, message.Channel, playerData.GetMentionSuffixText());
+                ApplicationMain.Current.Post.ReplyMessage("性別を女性に変えたよ！", message, message.Channel, playerData.GetMentionSuffixText());
             }
             else
             {
-                Application.Current.Post.ReplyMessage($"{arguments[0]} ってどんな性別なの？陽菜わからない！", message, message.Channel, playerData.GetMentionSuffixText());
+                ApplicationMain.Current.Post.ReplyMessage($"{arguments[0]} ってどんな性別なの？陽菜わからない！", message, message.Channel, playerData.GetMentionSuffixText());
             }
         }
 
@@ -224,7 +224,7 @@ namespace HarunaChanBot.Services
         private void ShowPlayerStatus(SocketMessage message)
         {
             var playerData = GetPlayerData(message);
-            Application.Current.Post.ReplyMessage($@"
+            ApplicationMain.Current.Post.ReplyMessage($@"
 レベル：{playerData.Level}
 経験値：{playerData.Exp} / {expTable[playerData.Level]}
 コイン：{playerData.Coin}
@@ -235,7 +235,7 @@ namespace HarunaChanBot.Services
         private void ShowHarunaStatus(SocketMessage message)
         {
             var harunaData = gameData.HarunaChan;
-            Application.Current.Post.ReplyMessage($@"
+            ApplicationMain.Current.Post.ReplyMessage($@"
 レベル：{harunaData.Level}
 経験値：{harunaData.Exp} / {expTable[harunaData.Level]}
 満腹度：{harunaData.Energy} / {HarunaGameData.MAX_ENERGY}", message);
@@ -249,14 +249,14 @@ namespace HarunaChanBot.Services
 
             if (arguments.Length < 1)
             {
-                Application.Current.Post.ReplyMessage("コマンドの引数が足りないよぉ", message, message.Channel, playerData.GetMentionSuffixText());
+                ApplicationMain.Current.Post.ReplyMessage("コマンドの引数が足りないよぉ", message, message.Channel, playerData.GetMentionSuffixText());
                 return;
             }
 
 
-            if (message.Author.Id != Application.Current.SupervisorID)
+            if (message.Author.Id != ApplicationMain.Current.SupervisorID)
             {
-                Application.Current.Post.ReplyMessage("ごめんなさい。このコマンドはかんりしゃの人だけしか使っちゃいけないってお母さんに言われてるの。", message, message.Channel, playerData.GetMentionSuffixText());
+                ApplicationMain.Current.Post.ReplyMessage("ごめんなさい。このコマンドはかんりしゃの人だけしか使っちゃいけないってお母さんに言われてるの。", message, message.Channel, playerData.GetMentionSuffixText());
                 return;
             }
 
@@ -264,20 +264,20 @@ namespace HarunaChanBot.Services
             var channelRate = GetChannelRate(message);
             var currentRate = channelRate.Rate;
             channelRate.Rate = double.Parse(arguments[0]);
-            Application.Current.Post.ReplyMessage($"{message.Channel.Name}({message.Channel.Id}) のレートを {currentRate} -> {channelRate.Rate} に変更したよ！", message, message.Channel, playerData.GetMentionSuffixText());
+            ApplicationMain.Current.Post.ReplyMessage($"{message.Channel.Name}({message.Channel.Id}) のレートを {currentRate} -> {channelRate.Rate} に変更したよ！", message, message.Channel, playerData.GetMentionSuffixText());
         }
 
 
         private void ShowChannelRate(SocketMessage message)
         {
             var playerData = GetPlayerData(message);
-            Application.Current.Post.ReplyMessage($"{message.Channel.Name}({message.Channel.Id}) のレートは {GetChannelRate(message).Rate} だよ！", message, message.Channel, playerData.GetMentionSuffixText());
+            ApplicationMain.Current.Post.ReplyMessage($"{message.Channel.Name}({message.Channel.Id}) のレートは {GetChannelRate(message).Rate} だよ！", message, message.Channel, playerData.GetMentionSuffixText());
         }
 
 
         private void HowPlaying(SocketMessage message)
         {
-            Application.Current.Post.ReplyMessage($@"
+            ApplicationMain.Current.Post.ReplyMessage($@"
 はるなちゃんクエストは、陽菜ちゃんbotが所属するディスコードサーバーへの発言をすると、プレイヤーが成長してさらに特定条件を満たすと、コインが貰えます。
 もらったコインは陽菜ちゃんにアイスを買ってあげることで、陽菜ちゃんの満腹度が回復します。満腹度は時間とともに消費されて経験値になります。
 増えた経験値は陽菜ちゃんの成長に繋がります。
@@ -351,7 +351,7 @@ namespace HarunaChanBot.Services
             LevelUp(playerData);
             if (currentLevel < playerData.Level)
             {
-                Application.Current.Post.ReplyMessage($"はるなちゃんクエストのプレイヤーレベルが {playerData.Level} に上がったよ！", message, message.Channel, playerData.GetMentionSuffixText());
+                ApplicationMain.Current.Post.ReplyMessage($"はるなちゃんクエストのプレイヤーレベルが {playerData.Level} に上がったよ！", message, message.Channel, playerData.GetMentionSuffixText());
             }
 
             dirty = true;

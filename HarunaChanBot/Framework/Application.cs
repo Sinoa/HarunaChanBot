@@ -24,17 +24,18 @@ using Discord.WebSocket;
 
 namespace HarunaChanBot.Framework
 {
-    public abstract class Application
+    public abstract class Application<T> where T : Application<T>
     {
         private readonly DiscordSocketClient client;
         private readonly List<SocketMessage> receivedMessageList;
         private readonly List<DiscordMessageObject> transmissionMessageList;
         private readonly List<ApplicationService> serviceList;
+        private readonly List<SocketGuild> guildList;
         private SynchronizationContext synchronizationContext;
 
 
 
-        public static Application Current { get; private set; }
+        public static T Current { get; private set; }
 
 
         public bool Running { get; private set; }
@@ -52,7 +53,8 @@ namespace HarunaChanBot.Framework
 
         public Application()
         {
-            Current = this;
+            Current = (T)this;
+            Startup();
             SupervisorID = GetSupervisorID();
 
 
@@ -67,6 +69,7 @@ namespace HarunaChanBot.Framework
 
             receivedMessageList = new List<SocketMessage>();
             transmissionMessageList = new List<DiscordMessageObject>();
+            guildList = new List<SocketGuild>();
             Post = new DiscordMessagePost(receivedMessageList.AsReadOnly(), transmissionMessageList);
 
 
@@ -131,19 +134,26 @@ namespace HarunaChanBot.Framework
 
         private void OnJoinGuild_Core(SocketGuild guild)
         {
+            guildList.Add(guild);
             OnJoinGuild(guild);
         }
 
 
         private void OnLeaveGuild_Core(SocketGuild guild)
         {
+            guildList.RemoveAll(x => x.Id == guild.Id);
             OnLeaveGuild(guild);
         }
 
 
         private void OnGuildAvailable_Core(SocketGuild guild)
         {
+            guildList.Add(guild);
             OnGuildAvailable(guild);
+            foreach (var service in serviceList)
+            {
+                service.OnGuildAvailable(guild);
+            }
         }
 
 
@@ -211,6 +221,16 @@ namespace HarunaChanBot.Framework
         }
 
 
+        protected virtual void Startup()
+        {
+        }
+
+
+        protected virtual void Terminate()
+        {
+        }
+
+
         protected virtual string GetBotToken()
         {
             return null;
@@ -223,6 +243,39 @@ namespace HarunaChanBot.Framework
         }
 
 
+        public SocketGuild GetGuild(ulong id)
+        {
+            foreach (var guild in guildList)
+            {
+                if (guild.Id == id)
+                {
+                    return guild;
+                }
+            }
+
+
+            return null;
+        }
+
+
+        public SocketTextChannel GetTextChannel(ulong id)
+        {
+            foreach (var guild in guildList)
+            {
+                foreach (var textChannel in guild.TextChannels)
+                {
+                    if (textChannel.Id == id)
+                    {
+                        return textChannel;
+                    }
+                }
+            }
+
+
+            return null;
+        }
+
+
         protected void AddService(ApplicationService service)
         {
             if (serviceList.Contains(service)) return;
@@ -230,11 +283,11 @@ namespace HarunaChanBot.Framework
         }
 
 
-        public T GetService<T>() where T : ApplicationService
+        public TService GetService<TService>() where TService : ApplicationService
         {
             foreach (var service in serviceList)
             {
-                if (service is T) return (T)service;
+                if (service is TService) return (TService)service;
             }
 
 
@@ -264,6 +317,7 @@ namespace HarunaChanBot.Framework
 
             DoMainLoop(messagePumpHandler);
             ShutdownDiscord(messagePumpHandler);
+            Terminate();
         }
 
 
