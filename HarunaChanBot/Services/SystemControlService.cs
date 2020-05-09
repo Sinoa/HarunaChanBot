@@ -93,13 +93,13 @@ namespace HarunaChanBot.Services
                 {
                     case System.Windows.Forms.PowerLineStatus.Unknown:
                     case System.Windows.Forms.PowerLineStatus.Online:
-                        Application.Current.Post.SendMessage($"<@{Application.Current.SupervisorID}>ご飯が出来たよ！", channel);
+                        ApplicationMain.Current.Post.SendMessage($"<@{ApplicationMain.Current.SupervisorID}>ご飯が出来たよ！", channel);
                         break;
 
 
                     default:
                     case System.Windows.Forms.PowerLineStatus.Offline:
-                        Application.Current.Post.SendMessage($"<@{Application.Current.SupervisorID}>ご飯がもう無いよ！", channel);
+                        ApplicationMain.Current.Post.SendMessage($"<@{ApplicationMain.Current.SupervisorID}>ご飯がもう無いよ！", channel);
                         break;
                 }
 
@@ -113,7 +113,7 @@ namespace HarunaChanBot.Services
                 var currentPowerLevel = System.Windows.Forms.SystemInformation.PowerStatus.BatteryLifePercent;
                 if (notifyed == false && currentPowerLevel <= 0.15f)
                 {
-                    Application.Current.Post.SendMessage($"<@{Application.Current.SupervisorID}>うぅ。。。お腹すいたぁ、陽菜ご飯を食べたいよ～", channel);
+                    ApplicationMain.Current.Post.SendMessage($"<@{ApplicationMain.Current.SupervisorID}>うぅ。。。お腹すいたぁ、陽菜ご飯を食べたいよ～", channel);
                     notifyed = true;
                 }
             }
@@ -122,15 +122,15 @@ namespace HarunaChanBot.Services
 
         private void SetChannel(SocketMessage message, PlayerGameData playerData)
         {
-            if (message.Author.Id != Application.Current.SupervisorID)
+            if (message.Author.Id != ApplicationMain.Current.SupervisorID)
             {
-                Application.Current.Post.ReplyMessage("ごめんなさい、知らない人の言葉を信じちゃいけないってお母さんから言われているの。", message, message.Channel, playerData.GetMentionSuffixText());
+                ApplicationMain.Current.Post.ReplyMessage("ごめんなさい、知らない人の言葉を信じちゃいけないってお母さんから言われているの。", message, message.Channel, playerData.GetMentionSuffixText());
                 return;
             }
 
 
             channel = message.Channel;
-            Application.Current.Post.ReplyMessage($"何かあったらここに連絡するね！", message, message.Channel, playerData.GetMentionSuffixText());
+            ApplicationMain.Current.Post.ReplyMessage($"何かあったらここに連絡するね！", message, message.Channel, playerData.GetMentionSuffixText());
         }
 
 
