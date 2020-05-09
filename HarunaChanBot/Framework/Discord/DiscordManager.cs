@@ -17,7 +17,7 @@ using System;
 using System.Collections.Generic;
 using Discord.WebSocket;
 
-namespace HarunaChanBot.Framework
+namespace HarunaChanBot.Framework.Discord
 {
     public class DiscordManager : IDisposable
     {
