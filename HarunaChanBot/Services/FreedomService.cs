@@ -186,6 +186,8 @@ namespace HarunaChanBot.Services
                 case "スケジュールの確認": ShowSchedule(message, arguments); return;
                 case "時報はここにお願い": SetTimeSignalChannel(message, arguments); return;
                 case "時報の登録": SetTimeSignalMessage(message, arguments); return;
+                case "時報の一覧": ShowTimeSignalMessage(message, arguments); return;
+                case "時報の削除": RemoveTimeSignalMessage(message, arguments); return;
                 case "反応するスタンプの登録": AddStamp(message, arguments); return;
                 case "反応するメッセージの登録": AddReactiveMessage(message, arguments); return;
                 case "反応するメッセージの一覧": ShowReactiveMessage(message, arguments); return;
@@ -499,6 +501,95 @@ namespace HarunaChanBot.Services
 
             freedomData.TimeSignalMessageTable[hour].Add(arguments[1]);
             ApplicationMain.Current.Post.SendMessage("Set completed...", message.Channel);
+        }
+
+
+        private void ShowTimeSignalMessage(SocketMessage message, string[] arguments)
+        {
+            var isSupervisor = message.Author.Id == ApplicationMain.Current.Config.SupervisorUserID;
+            var isSubSupervisor = ApplicationMain.Current.Config.SubSupervisorUserIDList.Contains(message.Author.Id);
+            if (!(isSupervisor || isSubSupervisor))
+            {
+                ApplicationMain.Current.Post.SendMessage("only supervisor or sub supervisor can control this command.", message.Channel);
+                return;
+            }
+
+
+            if (arguments.Length < 1)
+            {
+                ApplicationMain.Current.Post.SendMessage("Argument error....", message);
+                return;
+            }
+
+
+            if (!int.TryParse(arguments[0], out var hour))
+            {
+                ApplicationMain.Current.Post.SendMessage("hour out of range error....", message);
+                return;
+            }
+
+
+            if (hour < 0 || hour > 24)
+            {
+                ApplicationMain.Current.Post.SendMessage($"hour out of range error.... not supported {hour}", message);
+                return;
+            }
+
+
+            var buffer = new StringBuilder();
+            var list = freedomData.TimeSignalMessageTable[hour];
+            buffer.Append($"{hour}時の一覧は以下の通りです\n");
+            for (int i = 0; i < list.Count; ++i)
+            {
+                var signalMessage = list[i];
+                buffer.Append($"[{i}]{signalMessage}\n");
+            }
+
+
+            ApplicationMain.Current.Post.SendMessage(buffer.ToString(), message.Channel);
+        }
+
+
+        private void RemoveTimeSignalMessage(SocketMessage message, string[] arguments)
+        {
+            var isSupervisor = message.Author.Id == ApplicationMain.Current.Config.SupervisorUserID;
+            var isSubSupervisor = ApplicationMain.Current.Config.SubSupervisorUserIDList.Contains(message.Author.Id);
+            if (!(isSupervisor || isSubSupervisor))
+            {
+                ApplicationMain.Current.Post.SendMessage("only supervisor or sub supervisor can control this command.", message.Channel);
+                return;
+            }
+
+
+            if (arguments.Length < 2)
+            {
+                ApplicationMain.Current.Post.SendMessage("Argument error....", message);
+                return;
+            }
+
+
+            if (!int.TryParse(arguments[0], out var hour))
+            {
+                ApplicationMain.Current.Post.SendMessage("hour out of range error....", message);
+                return;
+            }
+
+
+            if (!int.TryParse(arguments[1], out var index))
+            {
+                ApplicationMain.Current.Post.SendMessage("index parse error....", message);
+                return;
+            }
+
+
+            if (hour < 0 || hour > 24)
+            {
+                ApplicationMain.Current.Post.SendMessage($"hour out of range error.... not supported {hour}", message);
+                return;
+            }
+
+            freedomData.TimeSignalMessageTable[hour].RemoveAt(index);
+            ApplicationMain.Current.Post.SendMessage("Remove completed...", message.Channel);
         }
 
 
