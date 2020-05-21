@@ -21,7 +21,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Discord.WebSocket;
 using HarunaChanBot.Framework;
-using MersenneTwister;
 using Newtonsoft.Json;
 
 namespace HarunaChanBot.Services
@@ -34,11 +33,14 @@ namespace HarunaChanBot.Services
 
         private readonly PaifuDetectServiceData serviceData;
         private SocketTextChannel targetChannel;
+        private ulong allMessageReceiveChannelID;
+        private List<SocketTextChannel> kokutiTargetChannelList;
 
 
 
         public PaifuDetectService()
         {
+            kokutiTargetChannelList = new List<SocketTextChannel>();
             serviceData = PaifuDetectServiceData.Load();
             targetChannel = null;
         }
@@ -115,6 +117,9 @@ namespace HarunaChanBot.Services
 
         private void FreeUpdate(SocketMessage message)
         {
+            UpdateKokuti(message);
+
+
             if (!ContainPaifuUrl(message.Content) || serviceData.PaifuPasteChannelID != message.Channel.Id || targetChannel == null)
             {
                 return;
@@ -145,13 +150,115 @@ namespace HarunaChanBot.Services
         }
 
 
+        private void UpdateKokuti(SocketMessage message)
+        {
+            if (allMessageReceiveChannelID != message.Channel.Id)
+            {
+                return;
+            }
+
+
+            allMessageReceiveChannelID = 0;
+            foreach (var channel in kokutiTargetChannelList)
+            {
+                ApplicationMain.Current.Post.SendMessage(message.Content, channel);
+            }
+
+
+            kokutiTargetChannelList.Clear();
+            ApplicationMain.Current.Post.SendMessage("全体への告知が完了しました。", message.Channel);
+        }
+
+
         private void ProcessCommand(SocketMessage message, string command, string[] arguments)
         {
             switch (command)
             {
                 case "牌譜通知はここにお願いします": SetNotifyTargetChannel(message, arguments); return;
                 case "牌譜を貼る場所はここです": SetPaifuPasteChannel(message, arguments); return;
+                case "管理者の追加": AddAdminUser(message, arguments); return;
+                case "全体へ告知の準備": StandbySendAllChannel(message, arguments); return;
+                case "告知対象に追加": AddTeamChannel(message, arguments); return;
             }
+        }
+
+
+        private void AddTeamChannel(SocketMessage message, string[] arguments)
+        {
+            var isSupervisor = message.Author.Id == ApplicationMain.Current.Config.SupervisorUserID;
+            var isSubSupervisor = ApplicationMain.Current.Config.SubSupervisorUserIDList.Contains(message.Author.Id);
+            var isAdminUser = serviceData.adminUserIDList.Contains(message.Author.Id);
+            if (!(isSupervisor || isSubSupervisor || isAdminUser))
+            {
+                ApplicationMain.Current.Post.SendMessage("only supervisor or sub supervisor can control this command.", message.Channel);
+                return;
+            }
+
+
+            serviceData.teamChannelList.Add(message.Channel.Id);
+            serviceData.Save();
+            ApplicationMain.Current.Post.SendMessage("Success...", message.Channel);
+        }
+
+
+        private void StandbySendAllChannel(SocketMessage message, string[] arguments)
+        {
+            var isSupervisor = message.Author.Id == ApplicationMain.Current.Config.SupervisorUserID;
+            var isSubSupervisor = ApplicationMain.Current.Config.SubSupervisorUserIDList.Contains(message.Author.Id);
+            var isAdminUser = serviceData.adminUserIDList.Contains(message.Author.Id);
+            if (!(isSupervisor || isSubSupervisor || isAdminUser))
+            {
+                ApplicationMain.Current.Post.SendMessage("only supervisor or sub supervisor can control this command.", message.Channel);
+                return;
+            }
+
+
+            var buffer = new StringBuilder();
+            foreach (var channelID in serviceData.teamChannelList)
+            {
+                var channel = ApplicationMain.Current.GetTextChannel(channelID);
+                if (channel != null)
+                {
+                    kokutiTargetChannelList.Add(channel);
+                    buffer.Append($"{channel.Name}\n");
+                }
+            }
+
+
+            allMessageReceiveChannelID = message.Channel.Id;
+            ApplicationMain.Current.Post.SendMessage($"{buffer} 以上の全体告知の準備が出来ました", message.Channel);
+        }
+
+
+        private void AddAdminUser(SocketMessage message, string[] arguments)
+        {
+            var isSupervisor = message.Author.Id == ApplicationMain.Current.Config.SupervisorUserID;
+            var isSubSupervisor = ApplicationMain.Current.Config.SubSupervisorUserIDList.Contains(message.Author.Id);
+            var isAdminUser = serviceData.adminUserIDList.Contains(message.Author.Id);
+            if (!(isSupervisor || isSubSupervisor || isAdminUser))
+            {
+                ApplicationMain.Current.Post.SendMessage("only supervisor or sub supervisor can control this command.", message.Channel);
+                return;
+            }
+
+
+            if (arguments.Length < 1)
+            {
+                ApplicationMain.Current.Post.SendMessage($"argument error...", message.Channel);
+                return;
+            }
+
+
+            if (!ulong.TryParse(arguments[0], out var id))
+            {
+                ApplicationMain.Current.Post.SendMessage("id out of range error....", message);
+                return;
+            }
+
+
+            serviceData.adminUserIDList.Add(id);
+            serviceData.Save();
+            ApplicationMain.Current.Post.SendMessage("Set completed...", message.Channel);
         }
 
 
@@ -209,6 +316,8 @@ namespace HarunaChanBot.Services
 
         public ulong NotifyChannelID;
         public ulong PaifuPasteChannelID;
+        public List<ulong> teamChannelList;
+        public List<ulong> adminUserIDList;
 
 
 
@@ -221,7 +330,9 @@ namespace HarunaChanBot.Services
 
 
             var jsonData = File.ReadAllText(FileName);
-            return JsonConvert.DeserializeObject<PaifuDetectServiceData>(jsonData);
+            var data = JsonConvert.DeserializeObject<PaifuDetectServiceData>(jsonData);
+            data.Validate();
+            return data;
         }
 
 
@@ -229,6 +340,13 @@ namespace HarunaChanBot.Services
         {
             var jsonData = JsonConvert.SerializeObject(this, Formatting.Indented);
             File.WriteAllText(FileName, jsonData);
+        }
+
+
+        public void Validate()
+        {
+            teamChannelList ??= new List<ulong>();
+            adminUserIDList ??= new List<ulong>();
         }
     }
 }
