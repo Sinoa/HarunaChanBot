@@ -31,6 +31,7 @@ namespace HarunaChanBot.Services
         private static readonly Regex StampRegex = new Regex("<:([a-zA-Z0-9_-]+):([0-9]+)>");
         private static readonly Regex MentionRegex = new Regex("<@!?([0-9]+)>");
         private static readonly Regex PaifuUrlRegex = new Regex("https://game.mahjongsoul.com/\\?paipu=[0-9a-z_-]+");
+        private static readonly Regex TenhoUrlRegex = new Regex("http://tenhou.net/[0-9]+/\\?log=[0-9a-zA-Z\\-]+(&tw=[0-9])?");
 
         private readonly PaifuDetectServiceData serviceData;
         private SocketTextChannel targetChannel;
@@ -182,7 +183,8 @@ namespace HarunaChanBot.Services
             }
 
 
-            var isKentou = message.Content.Contains("検討をお願いします") || message.Content.Contains("検討お願いします");
+            var isKentou = message.Content.Contains("検討をお願") ||
+                           message.Content.Contains("検討お願");
             var pasterName = message.Author.Username;
             string messageText;
 
@@ -373,20 +375,27 @@ namespace HarunaChanBot.Services
 
         private bool ContainPaifuUrl(string messageText)
         {
-            return PaifuUrlRegex.IsMatch(messageText);
+            return PaifuUrlRegex.IsMatch(messageText) || TenhoUrlRegex.IsMatch(messageText);
         }
 
 
         private string GetPaifuUrl(string messageText)
         {
             var match = PaifuUrlRegex.Match(messageText);
-            if (!match.Success)
+            if (match.Success)
             {
-                return string.Empty;
+                return match.Value;
             }
 
 
-            return match.Value;
+            match = TenhoUrlRegex.Match(messageText);
+            if (match.Success)
+            {
+                return match.Value;
+            }
+
+
+            return string.Empty;
         }
 
 
