@@ -19,6 +19,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using Discord.Rest;
 using Discord.WebSocket;
 using HarunaChanBot.Framework;
 using Newtonsoft.Json;
@@ -118,22 +119,82 @@ namespace HarunaChanBot.Services
         private void FreeUpdate(SocketMessage message)
         {
             UpdateKokuti(message);
+            UpdateKentou(message);
+            UpdateAutoUnpin(message);
+        }
 
 
+        private void FreeRunUpdate()
+        {
+        }
+
+
+        private void UpdateAutoUnpin(SocketMessage message)
+        {
+            if (!ContainPaifuUrl(message.Content) || serviceData.ReplyChannelID != message.Channel.Id || targetChannel == null)
+            {
+                return;
+            }
+
+
+            RemovePinAsync(message);
+        }
+
+
+        private async void RemovePinAsync(SocketMessage socketMessage)
+        {
+            var pasteChannel = ApplicationMain.Current.GetTextChannel(serviceData.PaifuPasteChannelID);
+            if (pasteChannel == null)
+            {
+                return;
+            }
+
+
+            var paifuUrl = GetPaifuUrl(socketMessage.Content);
+            var pinMessages = await pasteChannel.GetPinnedMessagesAsync();
+            var userName = string.Empty;
+            foreach (var message in pinMessages)
+            {
+                var pinMessage = message as RestUserMessage;
+                if (pinMessage == null)
+                {
+                    continue;
+                }
+
+
+                if (pinMessage.Content.Contains(paifuUrl))
+                {
+                    userName = pinMessage.Author.Username;
+                    await pinMessage.UnpinAsync();
+                }
+            }
+
+
+            ApplicationMain.Current.Post.SendMessage($"{userName} さんの、ピン留めされた検討牌譜を削除しました。", socketMessage.Channel);
+        }
+
+
+        private void UpdateKentou(SocketMessage message)
+        {
             if (!ContainPaifuUrl(message.Content) || serviceData.PaifuPasteChannelID != message.Channel.Id || targetChannel == null)
             {
                 return;
             }
 
 
-            var isKentou = message.Content.Contains("検討をお願いします");
+            var isKentou = message.Content.Contains("検討をお願いします") || message.Content.Contains("検討お願いします");
             var pasterName = message.Author.Username;
             string messageText;
 
 
             if (isKentou)
             {
-                messageText = $"{pasterName} さんが、牌譜検討して欲しい牌譜を貼ったみたいよ。見てあげてちょうだいね。";
+                messageText = $"{pasterName} さんが、牌譜検討して欲しい牌譜を貼ったみたいよ。ピン留めしておいたから見てあげてちょうだいね。";
+                var socketMessage = message as SocketUserMessage;
+                if (socketMessage != null)
+                {
+                    socketMessage.PinAsync();
+                }
             }
             else
             {
@@ -142,11 +203,6 @@ namespace HarunaChanBot.Services
 
 
             ApplicationMain.Current.Post.SendMessage(messageText, targetChannel);
-        }
-
-
-        private void FreeRunUpdate()
-        {
         }
 
 
@@ -176,10 +232,29 @@ namespace HarunaChanBot.Services
             {
                 case "牌譜通知はここにお願いします": SetNotifyTargetChannel(message, arguments); return;
                 case "牌譜を貼る場所はここです": SetPaifuPasteChannel(message, arguments); return;
+                case "牌譜検討場所はここです": SetReplyChannel(message, arguments); return;
                 case "管理者の追加": AddAdminUser(message, arguments); return;
                 case "全体へ告知の準備": StandbySendAllChannel(message, arguments); return;
                 case "告知対象に追加": AddTeamChannel(message, arguments); return;
             }
+        }
+
+
+        private void SetReplyChannel(SocketMessage message, string[] arguments)
+        {
+            var isSupervisor = message.Author.Id == ApplicationMain.Current.Config.SupervisorUserID;
+            var isSubSupervisor = ApplicationMain.Current.Config.SubSupervisorUserIDList.Contains(message.Author.Id);
+            var isAdminUser = serviceData.adminUserIDList.Contains(message.Author.Id);
+            if (!(isSupervisor || isSubSupervisor || isAdminUser))
+            {
+                ApplicationMain.Current.Post.SendMessage("only supervisor or sub supervisor can control this command.", message.Channel);
+                return;
+            }
+
+
+            serviceData.ReplyChannelID = message.Channel.Id;
+            serviceData.Save();
+            ApplicationMain.Current.Post.SendMessage("わかったわ、ここで返事した牌譜URLのピンを外すようにするわね", message.Channel);
         }
 
 
@@ -302,6 +377,19 @@ namespace HarunaChanBot.Services
         }
 
 
+        private string GetPaifuUrl(string messageText)
+        {
+            var match = PaifuUrlRegex.Match(messageText);
+            if (!match.Success)
+            {
+                return string.Empty;
+            }
+
+
+            return match.Value;
+        }
+
+
         private string RemoveMentionContent(string content)
         {
             return MentionRegex.Replace(content, string.Empty);
@@ -316,6 +404,7 @@ namespace HarunaChanBot.Services
 
         public ulong NotifyChannelID;
         public ulong PaifuPasteChannelID;
+        public ulong ReplyChannelID;
         public List<ulong> teamChannelList;
         public List<ulong> adminUserIDList;
 
