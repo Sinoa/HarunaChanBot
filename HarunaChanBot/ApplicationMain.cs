@@ -60,7 +60,7 @@ namespace HarunaChanBot
 
         protected override void InitializeService()
         {
-            AddService(new FreedomService());
+            AddService(new PaifuDetectService());
         }
 
 
