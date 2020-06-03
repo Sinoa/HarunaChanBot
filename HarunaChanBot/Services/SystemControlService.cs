@@ -29,11 +29,11 @@ namespace HarunaChanBot.Services
 
         protected internal override void Update()
         {
-            maxFrameNanoTime = Math.Max(maxFrameNanoTime, ApplicationMain.Current.FrameNanoTime);
-            var service = ApplicationMain.Current.GetService<HarunaChanQuestService>();
+            maxFrameNanoTime = Math.Max(maxFrameNanoTime, Application.Current.FrameNanoTime);
+            var service = Application.Current.GetService<HarunaChanQuestService>();
 
 
-            foreach (var message in ApplicationMain.Current.Post.ReceivedMessageList)
+            foreach (var message in Application.Current.Post.ReceivedMessageList)
             {
                 if (!KaiwaParser.ParseMessageCommand(message.Content, out var command, out var arguments)) continue;
 
@@ -62,9 +62,9 @@ namespace HarunaChanBot.Services
 
         private void GCCollect(SocketMessage message, PlayerGameData playerData)
         {
-            if (message.Author.Id != ApplicationMain.Current.SupervisorID)
+            if (message.Author.Id != Application.Current.SupervisorID)
             {
-                ApplicationMain.Current.Post.ReplyMessage("ごめんなさい、知らない人の言葉を信じちゃいけないってお母さんから言われているの。", message, message.Channel, playerData.GetMentionSuffixText());
+                Application.Current.Post.ReplyMessage("ごめんなさい、知らない人の言葉を信じちゃいけないってお母さんから言われているの。", message, message.Channel, playerData.GetMentionSuffixText());
                 return;
             }
 
@@ -75,43 +75,37 @@ namespace HarunaChanBot.Services
             var nextSize = GC.GetTotalMemory(false);
 
 
-            ApplicationMain.Current.Post.ReplyMessage($"メモリの掃除が終わったよ！ 使用量は {prevSize.ToString("N0")} -> {nextSize.ToString("N0")} になったよ", message, message.Channel, playerData.GetMentionSuffixText());
+            Application.Current.Post.ReplyMessage($"メモリの掃除が終わったよ！ 使用量は {prevSize.ToString("N0")} -> {nextSize.ToString("N0")} になったよ", message, message.Channel, playerData.GetMentionSuffixText());
         }
 
 
         private void ShowSystemInformation(SocketMessage message)
         {
-            var powerStatus = System.Windows.Forms.SystemInformation.PowerStatus;
-            var remaining = TimeSpan.FromSeconds(powerStatus.BatteryLifeRemaining);
             var messageText = $@"
 現在稼働中のシステムのステータスを開示します。
-フレーム処理時間：{(ApplicationMain.Current.FrameNanoTime / 1000000.0).ToString("N3")} ms（{(1.0 / ApplicationMain.Current.FrameNanoTime * 1000000000.0).ToString("N0")} FPS）
-最大フレーム処理時間：{(maxFrameNanoTime / 1000000.0).ToString("N3")} ms（{(1.0 / maxFrameNanoTime * 1000000000.0).ToString("N0")} FPS）
-メモリ使用量：{Environment.WorkingSet.ToString("N0")} Bytes
-GC使用量：{GC.GetTotalMemory(false).ToString("N0")} Bytes
+フレーム処理時間：{Application.Current.FrameNanoTime / 1000000.0:N3} ms（{1.0 / Application.Current.FrameNanoTime * 1000000000.0:N0} FPS）
+最大フレーム処理時間：{maxFrameNanoTime / 1000000.0:N3} ms（{1.0 / maxFrameNanoTime * 1000000000.0:N0} FPS）
+メモリ使用量：{Environment.WorkingSet:N0} Bytes
+GC使用量：{GC.GetTotalMemory(false):N0} Bytes
 GC世代数：{GC.MaxGeneration + 1} 世代
 GCカウント(世代0)：{GC.CollectionCount(0)} 回
 GCカウント(世代1)：{GC.CollectionCount(1)} 回
-GCカウント(世代2)：{GC.CollectionCount(2)} 回
-電源接続状況：{powerStatus.PowerLineStatus}
-電池充電状態：{powerStatus.BatteryChargeStatus}
-電池充電割合：{(int)(powerStatus.BatteryLifePercent * 100)} %
-電池充電時間：{TimeSpan.FromSeconds(powerStatus.BatteryLifeRemaining)}";
-            ApplicationMain.Current.Post.ReplyMessage(messageText, message);
+GCカウント(世代2)：{GC.CollectionCount(2)} 回";
+            Application.Current.Post.ReplyMessage(messageText, message);
         }
 
 
         private void Logout(SocketMessage message, PlayerGameData playerData)
         {
-            if (message.Author.Id != ApplicationMain.Current.SupervisorID)
+            if (message.Author.Id != Application.Current.SupervisorID)
             {
-                ApplicationMain.Current.Post.ReplyMessage("ごめんなさい、知らない人の言葉を信じちゃいけないってお母さんから言われているの。", message, message.Channel, playerData.GetMentionSuffixText());
+                Application.Current.Post.ReplyMessage("ごめんなさい、知らない人の言葉を信じちゃいけないってお母さんから言われているの。", message, message.Channel, playerData.GetMentionSuffixText());
                 return;
             }
 
 
-            ApplicationMain.Current.Post.SendMessage("はーい！陽菜、お家に帰るね～、ばいばーい", message);
-            ApplicationMain.Current.Quit();
+            Application.Current.Post.SendMessage("はーい！陽菜、お家に帰るね～、ばいばーい", message);
+            Application.Current.Quit();
         }
     }
 }
