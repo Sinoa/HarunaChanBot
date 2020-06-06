@@ -94,6 +94,12 @@ namespace HarunaChanBot.Services
         }
 
 
+        protected internal override void Terminate()
+        {
+            TranslateMessage();
+        }
+
+
         private MessageLog ToLog(SocketMessage message)
         {
             if (nameInfo.Find(x => x.DiscordID == message.Author.Id) == null)
