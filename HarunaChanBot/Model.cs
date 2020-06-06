@@ -27,12 +27,27 @@ namespace HarunaChanBot
 
 
             modelBuilder.Entity<MessageAttachement>()
-                .HasIndex(x => new { x.MessageID });
+                .HasIndex(x => new { x.ChannelID, x.MessageID });
 
 
             modelBuilder.Entity<UserInfo>()
                 .Property(x => x.Gender)
                 .HasConversion(x => (int)x, x => (UserGender)x);
+
+
+            modelBuilder.Entity<MessageLog>()
+                .Property(x => x.ID)
+                .ValueGeneratedOnAdd();
+
+
+            modelBuilder.Entity<MessageAttachement>()
+                .Property(x => x.ID)
+                .ValueGeneratedOnAdd();
+
+
+            modelBuilder.Entity<UserInfo>()
+                .Property(x => x.ID)
+                .ValueGeneratedOnAdd();
         }
     }
 
@@ -49,7 +64,7 @@ namespace HarunaChanBot
     public class UserInfo
     {
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public uint ID { get; set; }
+        public int ID { get; set; }
 
         [Column(TypeName = "VARCHAR(20)")]
         public ulong DiscordID { get; set; }
@@ -66,7 +81,7 @@ namespace HarunaChanBot
     public class MessageLog
     {
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public uint ID { get; set; }
+        public int ID { get; set; }
 
         public DateTimeOffset PostTimestamp { get; set; }
 
@@ -89,7 +104,10 @@ namespace HarunaChanBot
     public class MessageAttachement
     {
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public uint ID { get; set; }
+        public int ID { get; set; }
+
+        [Column(TypeName = "VARCHAR(20)")]
+        public ulong ChannelID { get; set; }
 
         [Column(TypeName = "VARCHAR(20)")]
         public ulong MessageID { get; set; }

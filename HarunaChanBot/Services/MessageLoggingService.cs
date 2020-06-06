@@ -96,12 +96,15 @@ namespace HarunaChanBot.Services
 
         private MessageLog ToLog(SocketMessage message)
         {
-            nameInfo.Add(new UserInfo()
+            if (nameInfo.Find(x => x.DiscordID == message.Author.Id) == null)
             {
-                DiscordID = message.Author.Id,
-                Name = message.Author.Username,
-                LastActiveTimestamp = DateTimeOffset.Now,
-            });
+                nameInfo.Add(new UserInfo()
+                {
+                    DiscordID = message.Author.Id,
+                    Name = message.Author.Username,
+                    LastActiveTimestamp = DateTimeOffset.Now,
+                });
+            }
 
 
             var messageLog = new MessageLog();
@@ -118,6 +121,7 @@ namespace HarunaChanBot.Services
                 .Select(x => new MessageAttachement()
                 {
                     MessageID = message.Id,
+                    ChannelID = message.Channel.Id,
                     AttachmentID = x.Id,
                     FileName = x.Filename,
                     AttachmentURL = x.Url,
