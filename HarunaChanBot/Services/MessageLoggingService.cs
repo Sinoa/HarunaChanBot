@@ -14,9 +14,9 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Text;
+using System.Linq;
 using Discord.WebSocket;
 using HarunaChanBot.Framework;
 
@@ -25,21 +25,18 @@ namespace HarunaChanBot.Services
     public class MessageLoggingService : ApplicationService
     {
         private Stopwatch stopwatch;
-        private StreamWriter writer;
-        private bool dirty;
+        private List<MessageLog> messageList;
+        private List<UserInfo> nameInfo;
+        private List<MessageAttachement> attachment;
 
 
 
         public MessageLoggingService()
         {
-            if (!Directory.Exists("Log"))
-            {
-                Directory.CreateDirectory("Log");
-            }
-
-
-            writer = new StreamWriter("Log/message.log", true, new UTF8Encoding(false));
             stopwatch = Stopwatch.StartNew();
+            messageList = new List<MessageLog>(4 << 10);
+            nameInfo = new List<UserInfo>();
+            attachment = new List<MessageAttachement>();
         }
 
 
@@ -47,39 +44,88 @@ namespace HarunaChanBot.Services
         {
             foreach (var message in Application.Current.Post.ReceivedMessageList)
             {
-                dirty = true;
-                AddLog(message);
+                messageList.Add(ToLog(message));
             }
 
 
-            if (stopwatch.ElapsedMilliseconds >= 30 * 1000 && dirty)
+            if (stopwatch.ElapsedMilliseconds >= 30 * 1000 && messageList.Count > 0)
             {
-                dirty = false;
-                writer.Flush();
+                TranslateMessage();
                 stopwatch.Restart();
             }
         }
 
 
-        protected internal override void Terminate()
+        private void TranslateMessage()
         {
-            writer.Dispose();
+            using var database = new DatabaseContext();
+
+            foreach (var message in messageList)
+            {
+                database.Add(message);
+            }
+
+
+            foreach (var att in attachment)
+            {
+                database.Add(att);
+            }
+
+
+            foreach (var info in nameInfo)
+            {
+                var i = database.UserInfo.FirstOrDefault(x => x.DiscordID == info.DiscordID);
+                if (i == null)
+                {
+                    database.Add(info);
+                    continue;
+                }
+
+
+                i.LastActiveTimestamp = info.LastActiveTimestamp;
+            }
+
+            database.SaveChanges();
+
+
+            messageList.Clear();
+            attachment.Clear();
+            nameInfo.Clear();
         }
 
 
-        private void AddLog(SocketMessage message)
+        private MessageLog ToLog(SocketMessage message)
         {
-            var timestamp = message.Timestamp.ToOffset(TimeSpan.FromHours(9.0));
-            var messageText = message.Content;
-            var channelName = message.Channel.Name;
-            var userName = message.Author.Username;
-            var userID = message.Author.Id;
-            var isBot = message.Author.IsBot;
-            var logText = $"[{timestamp}]\nChannel={channelName}\nUserName={userName}({userID})\nIsBot={isBot}\n{messageText}\n\n";
-            writer.Write(logText);
+            nameInfo.Add(new UserInfo()
+            {
+                DiscordID = message.Author.Id,
+                Name = message.Author.Username,
+                LastActiveTimestamp = DateTimeOffset.Now,
+            });
 
 
-            Console.Write(logText);
+            var messageLog = new MessageLog();
+            messageLog.PostTimestamp = message.Timestamp.ToOffset(TimeSpan.FromHours(9.0));
+            messageLog.Message = message.Content;
+            messageLog.MessageID = message.Id;
+            messageLog.UserID = message.Author.Id;
+            messageLog.ChannelID = message.Channel.Id;
+            messageLog.IsBot = message.Author.IsBot;
+
+
+            attachment.AddRange(
+                message.Attachments
+                .Select(x => new MessageAttachement()
+                {
+                    MessageID = message.Id,
+                    AttachmentID = x.Id,
+                    FileName = x.Filename,
+                    AttachmentURL = x.Url,
+                })
+            );
+
+
+            return messageLog;
         }
     }
 }
