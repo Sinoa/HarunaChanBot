@@ -22,8 +22,9 @@ namespace HarunaChanBot
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Index
             modelBuilder.Entity<MessageLog>()
-                .HasIndex(x => new { x.ChannelID, x.UserID, x.PostTimestamp });
+                .HasIndex(x => new { x.UserID, x.ChannelID, x.PostTimestamp });
 
 
             modelBuilder.Entity<MessageAttachement>()
@@ -31,10 +32,55 @@ namespace HarunaChanBot
 
 
             modelBuilder.Entity<UserInfo>()
+                .HasIndex(x => x.DiscordID);
+
+
+            modelBuilder.Entity<UserInfo>()
+                .HasIndex(x => x.Gender);
+
+
+            // Convert
+            modelBuilder.Entity<UserInfo>()
                 .Property(x => x.Gender)
                 .HasConversion(x => (int)x, x => (UserGender)x);
 
 
+            modelBuilder.Entity<UserInfo>()
+                .Property(x => x.DiscordID)
+                .HasConversion(x => (long)x, x => (ulong)x);
+
+
+            modelBuilder.Entity<MessageLog>()
+                .Property(x => x.ChannelID)
+                .HasConversion(x => (long)x, x => (ulong)x);
+
+
+            modelBuilder.Entity<MessageLog>()
+                .Property(x => x.UserID)
+                .HasConversion(x => (long)x, x => (ulong)x);
+
+
+            modelBuilder.Entity<MessageLog>()
+                .Property(x => x.MessageID)
+                .HasConversion(x => (long)x, x => (ulong)x);
+
+
+            modelBuilder.Entity<MessageAttachement>()
+                .Property(x => x.ChannelID)
+                .HasConversion(x => (long)x, x => (ulong)x);
+
+
+            modelBuilder.Entity<MessageAttachement>()
+                .Property(x => x.MessageID)
+                .HasConversion(x => (long)x, x => (ulong)x);
+
+
+            modelBuilder.Entity<MessageAttachement>()
+                .Property(x => x.AttachmentID)
+                .HasConversion(x => (long)x, x => (ulong)x);
+
+
+            // AutoIncrement
             modelBuilder.Entity<MessageLog>()
                 .Property(x => x.ID)
                 .ValueGeneratedOnAdd();
@@ -66,7 +112,6 @@ namespace HarunaChanBot
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ID { get; set; }
 
-        [Column(TypeName = "VARCHAR(20)")]
         public ulong DiscordID { get; set; }
 
         public string Name { get; set; }
@@ -87,13 +132,10 @@ namespace HarunaChanBot
 
         public bool IsBot { get; set; }
 
-        [Column(TypeName = "VARCHAR(20)")]
         public ulong ChannelID { get; set; }
 
-        [Column(TypeName = "VARCHAR(20)")]
         public ulong UserID { get; set; }
 
-        [Column(TypeName = "VARCHAR(20)")]
         public ulong MessageID { get; set; }
 
         public string Message { get; set; }
@@ -106,13 +148,10 @@ namespace HarunaChanBot
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ID { get; set; }
 
-        [Column(TypeName = "VARCHAR(20)")]
         public ulong ChannelID { get; set; }
 
-        [Column(TypeName = "VARCHAR(20)")]
         public ulong MessageID { get; set; }
 
-        [Column(TypeName = "VARCHAR(20)")]
         public ulong AttachmentID { get; set; }
 
         public string AttachmentURL { get; set; }
