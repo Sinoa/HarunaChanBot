@@ -21,7 +21,6 @@ using System.Text;
 using Discord.WebSocket;
 using HarunaChanBot.Framework;
 using HarunaChanBot.Utils;
-using Org.BouncyCastle.Asn1.Ocsp;
 
 namespace HarunaChanBot.Services
 {
@@ -73,7 +72,7 @@ namespace HarunaChanBot.Services
                     var response = context.Response;
                     response.StatusCode = 200;
                     response.OutputStream.Write(responseData);
-                    response.Close();
+                    response.OutputStream.Dispose();
                 }
                 catch
                 {
