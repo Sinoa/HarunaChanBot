@@ -27,7 +27,7 @@ namespace HarunaChanBot.Services
     public class EasyHttpService : ApplicationService
     {
         private readonly HttpListener httpServer;
-        private readonly Dictionary<ulong, byte[]> pageCache;
+        private readonly Dictionary<ulong, PageCache> pageCache;
         private readonly string hostAddress;
         private bool exit;
 
@@ -38,8 +38,12 @@ namespace HarunaChanBot.Services
             hostAddress = Environment.GetEnvironmentVariable("HOST_ADDR");
 
 
-            pageCache = new Dictionary<ulong, byte[]>();
-            pageCache[0] = new UTF8Encoding(false).GetBytes("Require ChannelID query parameter.");
+            pageCache = new Dictionary<ulong, PageCache>();
+            pageCache[0] = new PageCache()
+            {
+                CachePeriod = DateTimeOffset.MaxValue,
+                CacheData = new UTF8Encoding(false).GetBytes("Require ChannelID query parameter.")
+            };
 
 
             httpServer = new HttpListener();
@@ -56,6 +60,17 @@ namespace HarunaChanBot.Services
                 try
                 {
                     var context = await httpServer.GetContextAsync();
+                    if (!Authenticate(context))
+                    {
+                        var errResponse = context.Response;
+                        errResponse.StatusCode = 401;
+                        errResponse.Headers.Add(HttpResponseHeader.WwwAuthenticate, $"Basic realm=\"認証が必要です\"");
+                        errResponse.OutputStream.Write(new UTF8Encoding(false).GetBytes("認証なしでは閲覧出来ません"));
+                        errResponse.OutputStream.Dispose();
+                        continue;
+                    }
+
+
                     var channelIDParam = context.Request.QueryString.Get("ChannelID") ?? "0";
                     if (!ulong.TryParse(channelIDParam, out var channelID))
                     {
@@ -65,13 +80,26 @@ namespace HarunaChanBot.Services
 
                     if (!pageCache.TryGetValue(channelID, out var responseData))
                     {
-                        responseData = CachePage(channelID);
+                        responseData = new PageCache()
+                        {
+                            CachePeriod = DateTimeOffset.Now.AddSeconds(30),
+                            CacheData = CachePage(channelID)
+                        };
+
+
+                        pageCache[channelID] = responseData;
+                    }
+
+
+                    if (responseData.CachePeriod < DateTimeOffset.Now)
+                    {
+                        responseData.CacheData = new UTF8Encoding(false).GetBytes("cache is expired.");
                     }
 
 
                     var response = context.Response;
                     response.StatusCode = 200;
-                    response.OutputStream.Write(responseData);
+                    response.OutputStream.Write(responseData.CacheData);
                     response.OutputStream.Dispose();
                 }
                 catch
@@ -79,6 +107,25 @@ namespace HarunaChanBot.Services
                     break;
                 }
             }
+        }
+
+
+        private bool Authenticate(HttpListenerContext context)
+        {
+            var request = context.Request;
+            var auth = request.Headers.Get("Authorization");
+            if (auth == null)
+            {
+                return false;
+            }
+
+
+            var name = Environment.GetEnvironmentVariable("AUTH_NAME");
+            var pass = Environment.GetEnvironmentVariable("AUTH_PASS");
+            var base64 = Convert.ToBase64String(new UTF8Encoding(false).GetBytes($"{name}:{pass}"));
+
+
+            return auth == $"Basic {base64}";
         }
 
 
@@ -114,7 +161,11 @@ namespace HarunaChanBot.Services
 
         private void ShowPageUrl(SocketMessage message, string[] arguments, PlayerGameData playerData)
         {
-            pageCache[message.Channel.Id] = CachePage(message.Channel.Id);
+            pageCache[message.Channel.Id] = new PageCache()
+            {
+                CachePeriod = DateTimeOffset.Now.AddSeconds(30),
+                CacheData = CachePage(message.Channel.Id)
+            };
             Application.Current.Post.ReplyMessage($"http://{hostAddress}/?ChannelID={message.Channel.Id}", message, message.Channel, playerData.GetMentionSuffixText());
         }
 
@@ -143,6 +194,14 @@ namespace HarunaChanBot.Services
 
 
             return new UTF8Encoding(false).GetBytes(buffer.ToString());
+        }
+
+
+
+        private class PageCache
+        {
+            public DateTimeOffset CachePeriod { get; set; }
+            public byte[] CacheData { get; set; }
         }
     }
 }
