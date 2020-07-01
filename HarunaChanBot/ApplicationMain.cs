@@ -61,6 +61,7 @@ namespace HarunaChanBot
         protected override void InitializeService()
         {
             AddService(new PaifuDetectService());
+            AddService(new MessagePinProxyService());
         }
 
 

@@ -20,16 +20,16 @@ namespace HarunaChanBot.Framework
     public class DiscordReaction
     {
         public ISocketMessageChannel TargetChannel { get; }
-        public SocketUserMessage Message { get; }
+        public ulong MessageID { get; }
         public SocketReaction Reaction { get; }
         public bool IsAdded { get; }
 
 
 
-        public DiscordReaction(ISocketMessageChannel targetChannel, SocketUserMessage message, SocketReaction reaction, bool isAdded)
+        public DiscordReaction(ISocketMessageChannel targetChannel, ulong messageID, SocketReaction reaction, bool isAdded)
         {
             TargetChannel = targetChannel;
-            Message = message;
+            MessageID = messageID;
             Reaction = reaction;
             IsAdded = isAdded;
         }

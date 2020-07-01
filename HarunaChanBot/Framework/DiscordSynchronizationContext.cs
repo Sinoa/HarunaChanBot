@@ -93,6 +93,9 @@ namespace HarunaChanBot.Framework
                 {
                     callback(state);
                 }
+                catch
+                {
+                }
                 finally
                 {
                     waitHandle?.Set();
