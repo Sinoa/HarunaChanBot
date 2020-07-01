@@ -19,6 +19,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
 
@@ -31,6 +32,7 @@ namespace HarunaChanBot.Framework
         private readonly List<DiscordMessageObject> transmissionMessageList;
         private readonly List<ApplicationService> serviceList;
         private readonly List<SocketGuild> guildList;
+        private readonly List<DiscordReaction> reactionList;
         private SynchronizationContext synchronizationContext;
 
 
@@ -45,6 +47,9 @@ namespace HarunaChanBot.Framework
 
 
         public DiscordMessagePost Post { get; }
+
+
+        public IReadOnlyCollection<DiscordReaction> Reaction { get; }
 
 
         public ulong SupervisorID { get; private set; }
@@ -65,11 +70,15 @@ namespace HarunaChanBot.Framework
             client.LeftGuild += Client_LeftGuild;
             client.GuildAvailable += Client_GuildAvailable;
             client.MessageReceived += Client_MessageReceived;
+            client.ReactionAdded += Client_ReactionAdded;
+            client.ReactionRemoved += Client_ReactionRemoved;
 
 
             receivedMessageList = new List<SocketMessage>();
             transmissionMessageList = new List<DiscordMessageObject>();
             guildList = new List<SocketGuild>();
+            reactionList = new List<DiscordReaction>();
+            Reaction = reactionList.AsReadOnly();
             Post = new DiscordMessagePost(receivedMessageList.AsReadOnly(), transmissionMessageList);
 
 
@@ -116,6 +125,20 @@ namespace HarunaChanBot.Framework
         private Task Client_MessageReceived(SocketMessage arg)
         {
             synchronizationContext.Post(x => OnMessageReceived_Core((SocketMessage)x), arg);
+            return Task.CompletedTask;
+        }
+
+
+        private Task Client_ReactionAdded(Cacheable<IUserMessage, ulong> arg1, ISocketMessageChannel arg2, SocketReaction arg3)
+        {
+            synchronizationContext.Post(x => OnReactionAdded_Core((DiscordReaction)x), new DiscordReaction(arg2, (SocketUserMessage)arg1.Value, arg3, true));
+            return Task.CompletedTask;
+        }
+
+
+        private Task Client_ReactionRemoved(Cacheable<IUserMessage, ulong> arg1, ISocketMessageChannel arg2, SocketReaction arg3)
+        {
+            synchronizationContext.Post(x => OnReactionRemoved_Core((DiscordReaction)x), new DiscordReaction(arg2, (SocketUserMessage)arg1.Value, arg3, false));
             return Task.CompletedTask;
         }
 
@@ -173,6 +196,18 @@ namespace HarunaChanBot.Framework
         private void OnStartupFailed_Core()
         {
             OnStartupFailed();
+        }
+
+
+        private void OnReactionAdded_Core(DiscordReaction reaction)
+        {
+            reactionList.Add(reaction);
+        }
+
+
+        private void OnReactionRemoved_Core(DiscordReaction reaction)
+        {
+            reactionList.Add(reaction);
         }
 
 
@@ -336,6 +371,7 @@ namespace HarunaChanBot.Framework
                 Update_Core();
                 UpdateService();
                 receivedMessageList.Clear();
+                reactionList.Clear();
                 SendDiscordMessage(messagePumpHandler);
                 spinwait.SpinOnce();
 
