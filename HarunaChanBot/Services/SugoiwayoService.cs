@@ -75,7 +75,7 @@ namespace HarunaChanBot.Services
             }
 
 
-            CreateGaoo(null, null);
+            CreateGaoo(timeSignalTargetChannel);
 
 
             nextTimeSignalTime = nextTimeSignalTime.AddHours(1.0);
@@ -113,7 +113,7 @@ namespace HarunaChanBot.Services
             switch (command)
             {
                 case "抽選はここでお願い": SetChannel(message, arguments); return;
-                case "がおー": CreateGaoo(message, arguments); return;
+                case "がおー": CreateGaoo(message.Channel); return;
             }
         }
 
@@ -134,11 +134,11 @@ namespace HarunaChanBot.Services
         }
 
 
-        private void CreateGaoo(SocketMessage message, string[] arguments)
+        private void CreateGaoo(ISocketMessageChannel channel)
         {
             var result = Shuffle(new byte[] { 0, 1, 2, 3 }, random);
             var messageText = $"{TilePattern[result[0]]}{TilePattern[result[1]]}\n{TilePattern[result[2]]}{TilePattern[result[3]]}";
-            ApplicationMain.Current.Post.SendMessage(messageText, timeSignalTargetChannel);
+            ApplicationMain.Current.Post.SendMessage(messageText, channel);
         }
 
 
