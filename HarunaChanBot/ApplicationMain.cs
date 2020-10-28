@@ -50,7 +50,6 @@ namespace HarunaChanBot
             AddService(new SystemControlService());
             AddService(new KaiwaService());
             AddService(new HaipaiService());
-            AddService(new EasyHttpService());
         }
 
 

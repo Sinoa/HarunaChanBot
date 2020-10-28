@@ -234,7 +234,7 @@ namespace HarunaChanBot.Framework
         {
             foreach (var service in serviceList)
             {
-                if (service is T) return (T)service;
+                if (service is T result) return result;
             }
 
 
