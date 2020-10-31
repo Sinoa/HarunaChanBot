@@ -358,7 +358,6 @@ namespace HarunaChanBot.Framework
         private void DoMainLoop(Action messagePumpHandler)
         {
             var stopwatch = new Stopwatch();
-            var spinwait = new SpinWait();
 
 
             Running = true;
@@ -373,7 +372,7 @@ namespace HarunaChanBot.Framework
                 receivedMessageList.Clear();
                 reactionList.Clear();
                 SendDiscordMessage(messagePumpHandler);
-                spinwait.SpinOnce();
+                Thread.Sleep(16);
 
 
                 var tick = stopwatch.ElapsedTicks;
