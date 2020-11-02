@@ -49,6 +49,9 @@ namespace HarunaChanBot.Framework
         public ulong SupervisorID { get; private set; }
 
 
+        public DiscordSocketClient DiscordClient { get => client; }
+
+
 
         public Application()
         {
