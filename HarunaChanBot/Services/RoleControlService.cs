@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Security.AccessControl;
+using System.Text;
+using Discord;
 using Discord.WebSocket;
 using HarunaChanBot.Framework;
 using HarunaChanBot.Utils;
@@ -53,6 +55,7 @@ namespace HarunaChanBot.Services
 
 
                     case "部活一覧を見せて":
+                        ShowClubList(message, arguments ?? Array.Empty<string>(), playerData);
                         break;
 
 
@@ -69,15 +72,68 @@ namespace HarunaChanBot.Services
         }
 
 
-        private void JoinClub(SocketMessage message, string[] arguments, PlayerGameData playerData)
+        private async void JoinClub(SocketMessage message, string[] arguments, PlayerGameData playerData)
         {
-            //Application.Current.Post.ReplyMessage($"{kaiwaData.GetOyasumiMessage()} また明日ね！", message, message.Channel, playerData.GetMentionSuffixText());
+            if (arguments.Length < 1)
+            {
+                Application.Current.Post.ReplyMessage("何の部活に入るの？", message, message.Channel, playerData.GetMentionSuffixText());
+                return;
+            }
+
+
+            var clubName = arguments[0];
+            if (!clubIDTable.ContainsKey(clubName))
+            {
+                Application.Current.Post.ReplyMessage($"'{clubName}'っていう名前の部活は無いよ？", message, message.Channel, playerData.GetMentionSuffixText());
+                return;
+            }
+
+
+            var guild = ((ITextChannel)message.Channel).Guild;
+            var user = await guild.GetUserAsync(message.Author.Id);
+            await user.AddRoleAsync(guild.GetRole(clubIDTable[clubName]));
+
+
+            Application.Current.Post.ReplyMessage($"'{clubName}'に入部したよ！", message, message.Channel, playerData.GetMentionSuffixText());
         }
 
 
-        private void LeaveClub(SocketMessage message, string[] arguments, PlayerGameData playerData)
+        private async void LeaveClub(SocketMessage message, string[] arguments, PlayerGameData playerData)
         {
-            //Application.Current.Post.ReplyMessage($"{kaiwaData.GetOyasumiMessage()} また明日ね！", message, message.Channel, playerData.GetMentionSuffixText());
+            if (arguments.Length < 1)
+            {
+                Application.Current.Post.ReplyMessage("何の部活から退部するの？", message, message.Channel, playerData.GetMentionSuffixText());
+                return;
+            }
+
+
+            var clubName = arguments[0];
+            if (!clubIDTable.ContainsKey(clubName))
+            {
+                Application.Current.Post.ReplyMessage($"'{clubName}'っていう名前の部活は無いよ？", message, message.Channel, playerData.GetMentionSuffixText());
+                return;
+            }
+
+
+            var guild = ((ITextChannel)message.Channel).Guild;
+            var user = await guild.GetUserAsync(message.Author.Id);
+            await user.RemoveRoleAsync(guild.GetRole(clubIDTable[clubName]));
+
+
+            Application.Current.Post.ReplyMessage($"'{clubName}'から退部したよ！", message, message.Channel, playerData.GetMentionSuffixText());
+        }
+
+
+        private void ShowClubList(SocketMessage message, string[] arguments, PlayerGameData playerData)
+        {
+            var buffer = new StringBuilder();
+            var index = 0;
+            foreach (var club in clubIDTable)
+            {
+                buffer.AppendLine($"{++index}:{club.Key}");
+            }
+
+            Application.Current.Post.ReplyMessage($"\n\n{buffer.ToString()}\nの部活があるよ！", message, message.Channel, playerData.GetMentionSuffixText());
         }
 
 
@@ -105,7 +161,7 @@ namespace HarunaChanBot.Services
             }
 
 
-            var guild = Application.Current.DiscordClient.GetGuild(message.Reference.GuildId.Value);
+            var guild = ((ITextChannel)message.Channel).Guild;
             var role = guild.GetRole(roleID);
             if (role == null)
             {
@@ -150,9 +206,7 @@ namespace HarunaChanBot.Services
             clubIDTable.Remove(clubName);
 
 
-            using var database = new LiteDatabase(DatabaseName);
-            var collection = database.GetCollection<RoleRecord>(CollectionName);
-            var records = collection.Query().Where(x => x.ClubName == clubName);
+            Application.Current.Post.ReplyMessage($"'{clubName}'の部活設定を解除したよ", message, message.Channel, playerData.GetMentionSuffixText());
         }
 
 
