@@ -34,6 +34,7 @@ namespace HarunaChanBot.Services
         private FreedomData freedomData;
         private DateTimeOffset nextTimeSignalTime;
         private SocketTextChannel timeSignalTargetChannel;
+        private SocketTextChannel shoutTargetChannel;
         private Random random;
 
 
@@ -79,6 +80,7 @@ namespace HarunaChanBot.Services
         protected internal override void OnGuildAvailable(SocketGuild guild)
         {
             timeSignalTargetChannel = ApplicationMain.Current.GetTextChannel(freedomData.TimeSignalTargetChannelID);
+            shoutTargetChannel = ApplicationMain.Current.GetTextChannel(freedomData.ShoutTargetChannelID);
         }
 
 
@@ -130,16 +132,18 @@ namespace HarunaChanBot.Services
 
         private void FreeUpdate(SocketMessage message)
         {
-            var stamps = GetStampIDs(message.Content);
-            //Console.WriteLine($"StampCount:{stamps.Length}");
-            foreach (var stampID in stamps)
+            if (message.Channel.Id == freedomData.ShoutTargetChannelID)
             {
-                if (freedomData.StampSensorList.Contains(stampID))
+                var stamps = GetStampIDs(message.Content);
+                foreach (var stampID in stamps)
                 {
-                    var reactiveMessage = freedomData.GetReactiveMessage(random);
-                    if (reactiveMessage == null) return;
-                    ApplicationMain.Current.Post.SendMessage(reactiveMessage, message.Channel);
-                    return;
+                    if (freedomData.StampSensorList.Contains(stampID))
+                    {
+                        var reactiveMessage = freedomData.GetReactiveMessage(random);
+                        if (reactiveMessage == null) return;
+                        ApplicationMain.Current.Post.SendMessage(reactiveMessage, message.Channel);
+                        return;
+                    }
                 }
             }
         }
@@ -197,7 +201,25 @@ namespace HarunaChanBot.Services
                 case "記憶して": DoConfigSave(message, arguments); return;
                 case "時報の通知をお願い": AddTimeSignalNotify(message, arguments); return;
                 case "時報の通知を止めて": StopTimeSignalNotify(message, arguments); return;
+                case "ここで喘いで": SetShoutTargetChannel(message, arguments); return;
             }
+        }
+
+
+        private void SetShoutTargetChannel(SocketMessage message, string[] arguments)
+        {
+            var isSupervisor = message.Author.Id == ApplicationMain.Current.Config.SupervisorUserID;
+            var isSubSupervisor = ApplicationMain.Current.Config.SubSupervisorUserIDList.Contains(message.Author.Id);
+            if (!(isSupervisor || isSubSupervisor))
+            {
+                ApplicationMain.Current.Post.SendMessage("only supervisor or sub supervisor can control this command.", message.Channel);
+                return;
+            }
+
+
+            freedomData.ShoutTargetChannelID = message.Channel.Id;
+            shoutTargetChannel = message.Channel as SocketTextChannel;
+            ApplicationMain.Current.Post.SendMessage("Set completed...", message);
         }
 
 
@@ -695,6 +717,7 @@ namespace HarunaChanBot.Services
         public ulong nextID;
         public List<JobData> JobList;
         public ulong TimeSignalTargetChannelID;
+        public ulong ShoutTargetChannelID;
         public Dictionary<int, List<string>> TimeSignalMessageTable;
         public HashSet<ulong> StampSensorList;
         public List<string> ReactiveMessageList;
