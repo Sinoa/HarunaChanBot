@@ -132,20 +132,20 @@ namespace HarunaChanBot.Services
 
         private void FreeUpdate(SocketMessage message)
         {
-            if (message.Channel.Id == freedomData.ShoutTargetChannelID)
+            //if (message.Channel.Id == freedomData.ShoutTargetChannelID)
+            //{
+            var stamps = GetStampIDs(message.Content);
+            foreach (var stampID in stamps)
             {
-                var stamps = GetStampIDs(message.Content);
-                foreach (var stampID in stamps)
+                if (freedomData.StampSensorList.Contains(stampID))
                 {
-                    if (freedomData.StampSensorList.Contains(stampID))
-                    {
-                        var reactiveMessage = freedomData.GetReactiveMessage(random);
-                        if (reactiveMessage == null) return;
-                        ApplicationMain.Current.Post.SendMessage(reactiveMessage, message.Channel);
-                        return;
-                    }
+                    var reactiveMessage = freedomData.GetReactiveMessage(random);
+                    if (reactiveMessage == null) return;
+                    ApplicationMain.Current.Post.SendMessage(reactiveMessage, message.Channel);
+                    return;
                 }
             }
+            //}
         }
 
 
